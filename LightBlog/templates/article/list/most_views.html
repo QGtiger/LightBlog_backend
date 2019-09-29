@@ -1,0 +1,15 @@
+<ol>
+    {% for article in most_viewed %}
+        {% if forloop.counter == 1 %}
+            <li><a href="{% url 'article:article_content' article.id %}"><span class="layui-badge">{{ forloop.counter }}.</span> {{ article.title }}</a></li>
+        {% elif forloop.counter == 2 %}
+            <li><a href="{% url 'article:article_content' article.id %}"><span class="layui-badge layui-bg-orange">{{ forloop.counter }}.</span> {{ article.title }}</a></li>
+        {% elif forloop.counter == 3 %}
+            <li><a href="{% url 'article:article_content' article.id %}"><span class="layui-badge layui-bg-green">{{ forloop.counter }}.</span> {{ article.title }}</a></li>
+        {% elif forloop.counter == 4 %}
+            <li><a href="{% url 'article:article_content' article.id %}"><span class="layui-badge layui-bg-cyan">{{ forloop.counter }}.</span> {{ article.title }}</a></li>
+        {% elif forloop.counter == 5 %}
+            <li><a href="{% url 'article:article_content' article.id %}"><span class="layui-badge layui-bg-blue">{{ forloop.counter }}.</span> {{ article.title }}</a></li>
+        {% endif %}
+    {% endfor %}
+</ol>

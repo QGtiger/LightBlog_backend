@@ -1,0 +1,40 @@
+.content-right .lastest-articles{
+	text-align: center;
+    display: inline-block;
+    padding: 8px 30px 8px 10px;
+    background: #1d8994a1;
+    color: white;
+    border-radius: 5px;
+    font-family: cursive;
+    width: 100%;
+}
+
+.content-right .most-comments-articles{
+	text-align: center;
+    display: inline-block;
+    padding: 8px 30px 8px 10px;
+    background: #b10202a1;
+    color: white;
+    border-radius: 5px;
+    font-family: cursive;
+    width: 100%;
+}
+
+.content-right .most-views-articles{
+    text-align: center;
+    display: inline-block;
+    padding: 8px 30px 8px 10px;
+    background: #f1a419f7;
+    color: white;
+    border-radius: 5px;
+    font-family: cursive;
+    width: 100%;
+}
+
+.content-right li{
+	padding-top: 5px;
+}
+
+.like-article{
+	color: red;
+}

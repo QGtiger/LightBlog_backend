@@ -1,0 +1,78 @@
+{% extends "article/base.html" %}
+{% load staticfiles %}
+{% block title %} 文章列表 {% endblock %}
+
+{% block link %}
+<link rel="stylesheet" type="text/css" href="{% static 'css/layui.css' %}">
+{% endblock %}
+
+{% block content %}
+<div>
+    <div class="columns-table">
+  <table class="layui-table"  lay-even="" lay-skin="nob">
+    <colgroup>
+      <col class="layui-col-xs1">
+      <col class="layui-col-xs4">
+      <col class="layui-col-xs4">
+      <col class="layui-col-xs3">
+    </colgroup>
+    <thead>
+      <tr>
+            <td>序号</td>
+            <td>标题</td>
+            <td>栏目</td>
+            <td>操作</td>
+        </tr>
+    </thead>
+    <tbody>
+      {% for article in articles %}
+        <tr>
+            <td>{{ forloop.counter }}</td>
+            <td><a href="{% url 'article:article_detail' article.id %}">{{ article.title }}</a></td>
+            <td>{{ article.column }}</td>
+            <td>
+                <a name="edit" href="{% url 'article:redit_article' article.id %}"><span class="glyphicon glyphicon-pencil">编辑</span></a>
+                <a nane="delete" href="javascript:" onclick="del_article(this, {{ article.id }})"><span class="glyphicon glyphicon-trash" style="margin-left:20px;">删除</span></a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+  </table>
+</div>
+    {% include "paginator.html" %}
+</div>
+
+{% endblock %}
+
+{% block javascript %}
+<script type="text/javascript" src='{% static "js/jquery.js" %}'></script>
+<script type="text/javascript" src="{% static 'js/layer.js'%}"></script>
+<script type="text/javascript">
+    function del_article(the, article_id){
+        var article_name = $(the).parents("tr").children("td").eq(1).text();
+        layer.open({
+            type: 1,
+            skin: "layui-layer-rim",
+            area: ["400px", "200px"],
+            title: "删除文章",
+            content: '<div class="text-center" style="margin-top:20px"><p>是否确定删除《'+article_name+'》</p> </div>',
+            btn:['确定', '取消'], yes: function(){
+                $.ajax({
+                    url: '{% url "article:del_article" %}',
+                    type:"POST",
+                    data: {"article_id":article_id},
+                    success: function(e){
+                        if(e=="1"){
+                            parent.location.reload();
+                            layer.msg("has been deleted.");
+                        }else{
+                            layer.msg("删除失败");
+                        }
+                    },
+                })
+            },
+        });
+    }
+
+</script>
+{% endblock %}

@@ -1,0 +1,293 @@
+{% extends 'comment/base.html' %}
+{% load staticfiles %}
+{% block title %} 消息 - LightBlog {% endblock %}
+{% block content %}
+
+<link rel="stylesheet" href="{% static 'css/comment/comment.css' %}">
+<div>
+    <div class="menu"><h1>收到的评论</h1></div>
+    <div class="main">
+        <ul id="flow_notifications"></ul>
+    </div>
+</div>
+<script src="{% static 'js/comment/comment.js' %}"></script>
+<script>
+    // 初始化子评论
+    function init_comment(items){
+        lis = ''
+        for(var i =0; i < items.length; i++){
+            data = items[i]
+            item = '<div class="commentator commentator-child" id="comment-child-'+data.id+'" onmouseenter="EnterFunction(this)" onmouseleave="LeaveFunction(this)">'+
+                '<div class="commentator-img">'+
+                    '<a href="/account/author/'+data.from+'">'+
+                        '<img src="'+data.from_img_url+'" class="layui-nav-img" alt="">'+
+                    '</a>'+
+                '</div>'+
+                '<div class="commentator-info">'+
+                    '<a href="/account/author/'+data.from+'" class="commentator-name">'+data.from+'</a>'+
+                    '<span style="margin:0 10px">回复</span>'+
+                    '<a href="/account/author/'+data.to+'">'+data.to+'</a>'+
+                    '<span style="margin-left:20px">'+ Time.getFormatTime(data.created)+'</span>'+
+                '</div>'+
+                '<div class="comment-wrap">'+
+                    '<pre>'+data.body+'</pre>'+
+                '</div>'+
+                '<div class="meta">'
+            if('{{request.user.username}}'==data.from){
+                 item += '<a href="javascript:void(0)" onclick="comment_reply_delete('+data.id+', this)" class="comment-tool comment-delete"><span><i class="layui-icon layui-icon-delete"></i> <span>删 除</span></span></a>'
+            }else{
+                item += '<a href="javascript:void(0)" onclick="comment_report()" class="comment-tool comment-report"><span><i class="layui-icon layui-icon-release"></i> <span>举 报</span></span></a>'
+                item += '<a href="javascript:void(0)" comment_id="'+data.id+'" class="comment_reply comment-tool" onclick="comment_reply(this)"><span><i class="layui-icon layui-icon-reply-fill"></i> <span class="tool-text tool-reply">回 复</span></span></a>'
+            }
+                item += '</div>'+
+                    '<div class="reply_input" comment_id="'+data.id+'"></div>'+
+                '</div>'
+
+            lis += item
+        }
+        return lis
+    }
+
+
+    layui.use(['layer','flow'],function(){
+		var layer = layui.layer;
+		var flow = layui.flow;
+
+		flow.load({
+			elem: "#flow_notifications",
+			isAuto: false,
+			end: "emm,nothing next",
+			is_Lazyimg: true,
+			done: function(page,next){
+				var lis = '';
+				$.get('/comment/notifications?page='+page, function(e){
+				    parse_res = JSON.parse(e)
+                    res = parse_res.res
+                    page_num = parse_res.nums
+                    console.log(res)
+				    for(var i = 0; i < res.length; i++){
+
+                        item = '<li comment_id="'+res[i].comment_root_id+'">'+
+                                    '<div class="commentator commentator-root" id="comment-root-'+res[i].comment_root_id+'" onmouseenter="EnterFunction(this)" onmouseleave="LeaveFunction(this)">'+
+                                        '<div class="commentator-img">'+
+                                            '<a href="/account/author/'+res[i].commentator+'">'+
+                                                '<img src="'+res[i].commentator_img_url+'" class="layui-nav-img" alt="">'+
+                                            '</a>'+
+                                        '</div>'+
+                                        '<div class="commentator-info">'+
+                                            '<a href="/account/author/'+res[i].commentator+'" class="commentator-name">'+res[i].commentator+'</a>'+
+                                            '<span style="margin-left:30px">在文章</span>'+
+                                            '<a href="/article/article_content/'+res[i].article_id+'">《'+res[i].article_title+'》</a>'+
+                                            '<span> 中写了一条评论</span>'+
+                                            '<span style="margin-left:20px">'+ Time.getFormatTime(res[i].time)+'</span>'+
+                                        '</div>'+
+                                        '<div class="comment-wrap">'+
+                                            '<pre>'+res[i].body+'</pre>'+
+                                        '</div>'+
+                                        '<div class="meta">'+
+                                            '<a href="javascript:void(0)" comment_id="'+res[i].comment_root_id+'" class="comment_show comment-tool"><span><i class="layui-icon layui-icon-dialogue"></i> <span class="tool-text">查看回复</span></span></a>'+
+                                            '<a href="javascript:void(0)" comment_id="'+res[i].comment_root_id+'" class="comment_reply comment-tool" onclick="comment_reply(this)"><span><i class="layui-icon layui-icon-reply-fill"></i> <span class="tool-text tool-reply">回 复</span></span></a>'+
+                                        '</div>'+
+                                        '<div class="reply_input" comment_id="'+res[i].comment_root_id+'"></div>'+
+                                    '</div>'+
+                                '</li>'
+
+                        lis+=item;
+
+				    }
+				    next(lis,page<page_num)
+				})
+
+
+			}
+		})
+	})
+
+	function EnterFunction(e){
+        $(e).find('.comment-tool').css('display','block');
+    }
+
+    function LeaveFunction(e){
+        $(e).find('.comment-tool').css('display','none');
+    }
+
+    var is_reply = 0; // 判断是否回复
+
+    function comment_reply(e){
+        if(is_reply==0){
+            var name = $(e).parent().prevAll('.commentator-info:first').find('.commentator-name').text()
+            $(e).find('.tool-reply').text('取消回复');
+            $(e).parent().next().html('<textarea id="textarea" placeholder="回复 '+name+'"></textarea><div style="position:relative;height:40px"><div style="position:absolute;right:10px;display:block"><button class="layui-btn comment-reply-btn">send</button></div></div>')
+            is_reply = 1;
+        }else{
+            $(e).find('.tool-reply').text('回 复');
+            $(e).parent().next().html('');
+            is_reply = 0;
+        }
+    }
+
+    $('body').on('click', '.comment-reply-btn', function(e){
+        if($('.username').val()==''){
+            layer.msg('请先登录')
+        }else{
+            var dom = $(this).parent().parent().parent();
+            var body = dom.children("#textarea").val();
+            if(body.trim() == ""){
+                layer.msg("评论内容不能为空...")
+                return;
+            }
+            if(dom.parent().hasClass('commentator-root')){
+                data = {'reply_type': 0,'id': dom.attr('comment_id'), 'body': body}
+            }else if(dom.parent().hasClass('commentator-child')){
+                data = {'reply_type': 1, 'comment_id': dom.parent().parent().attr('comment_id'), 'id':dom.attr('comment_id'), 'body': body}
+            }else{
+                layer.msg('别搞我呀..');
+                return;
+            }
+            console.log(data)
+            $.ajax({
+                url: "{% url 'comment:comment_reply' %}",
+                method: "POST",
+                dataType: "json",
+                data: data,
+                success: function(res){
+                    if(res.code=='203'){
+                        console.log(res.res)
+                        layer.msg(res.tips);
+                        dom.html('')
+                        //console.log(dom)
+                        dom.prev().find(".tool-reply").text('回 复')
+                        data = res.res
+                        item = '<div class="commentator commentator-child" id="comment-child-'+data.id+'" onmouseenter="EnterFunction(this)" onmouseleave="LeaveFunction(this)">'+
+                        '<div class="commentator-img">'+
+                            '<a href="/account/author/'+data.from+'">'+
+                                '<img src="'+data.from_img_url+'" class="layui-nav-img" alt="">'+
+                            '</a>'+
+                        '</div>'+
+                        '<div class="commentator-info">'+
+                            '<a href="/account/author/'+data.from+'" class="commentator-name">'+data.from+'</a>'+
+                            '<span style="margin:0 10px">回复</span>'+
+                            '<a href="/account/author/'+data.to+'">'+data.to+'</a>'+
+                            '<span style="margin-left:20px">'+ Time.getFormatTime(data.created)+'</span>'+
+                        '</div>'+
+                        '<div class="comment-wrap">'+
+                            '<pre>'+data.body+'</pre>'+
+                        '</div>'+
+                        '<div class="meta">'+
+                            '<a href="javascript:void(0)" onclick="comment_reply_delete('+data.id+', this)" class="comment-tool comment-delete"><span><i class="layui-icon layui-icon-delete"></i> <span>删 除</span></span></a>'+
+                        '</div>'+
+                        '<div class="reply_input" comment_id="'+data.id+'"></div>'+
+                    '</div>'
+                        dom.parent().parent().find('.commentator-root').after($(item))
+                        is_reply = 0;
+                    }else{
+                        layer.msg(res.tips);
+                    }
+                }
+            })
+        }
+
+    })
+
+
+    $('body').on("click", ".comment_show", function(e){
+        id = $(this).attr('comment_id')
+        $.ajax({
+            url: "{% url 'comment:comment_reply_get' %}",
+            method: "POST",
+            data: {'id': id},
+            dataType: "json",
+            success: function(res){
+                console.log(res)
+                if(res.code=='201'){
+                    comment_root = res.comment_root
+                    console.log(comment_root)
+                    comment_child = res.comment_child
+                    console.log(comment_child)
+                    if('{{request.user.username}}' == comment_root.commentator){
+                        item = '<li comment_id="'+comment_root.id+'">'+
+                    '<div class="commentator commentator-root" id="comment-root-'+comment_root.id+'" onmouseenter="EnterFunction(this)" onmouseleave="LeaveFunction(this)">'+
+                        '<div class="commentator-img">'+
+                            '<a href="/account/author/'+comment_root.commentator+'">'+
+                                '<img src="'+comment_root.commentator_img_url+'" class="layui-nav-img" alt="">'+
+                            '</a>'+
+                        '</div>'+
+                        '<div class="commentator-info">'+
+                            '<a href="/account/author/'+comment_root.commentator+'" class="commentator-name">'+comment_root.commentator+'</a>'+
+                            '<span style="margin-left:20px">'+ Time.getFormatTime(comment_root.created)+'</span>'+
+                            '<span style="margin-left:20px"> 人气值: <span class="support-comment">'+comment_root.comment_like+'</span></span>'+
+                        '</div>'+
+                        '<div class="comment-wrap">'+
+                            '<pre>'+comment_root.body+'</pre>'+
+                        '</div>'+
+                        '<div class="meta">'+
+                        '</div>'+
+                        '<div class="reply_input" comment_id="'+comment_root.id+'"></div>'+
+                    '</div>'+init_comment(comment_child)+
+                    '</li>'
+                    }else{
+                        item = '<li comment_id="'+comment_root.id+'">'+
+                    '<div class="commentator commentator-root" id="comment-root-'+comment_root.id+'" onmouseenter="EnterFunction(this)" onmouseleave="LeaveFunction(this)">'+
+                        '<div class="commentator-img">'+
+                            '<a href="/account/author/'+comment_root.commentator+'">'+
+                                '<img src="'+comment_root.commentator_img_url+'" class="layui-nav-img" alt="">'+
+                            '</a>'+
+                        '</div>'+
+                        '<div class="commentator-info">'+
+                            '<a href="/account/author/'+comment_root.commentator+'" class="commentator-name">'+comment_root.commentator+'</a>'+
+                            '<span style="margin-left:20px">'+ Time.getFormatTime(comment_root.created)+'</span>'+
+                            '<span style="margin-left:20px"> 人气值: <span class="support-comment">'+comment_root.comment_like+'</span></span>'+
+                        '</div>'+
+                        '<div class="comment-wrap">'+
+                            '<pre>'+comment_root.body+'</pre>'+
+                        '</div>'+
+                        '<div class="meta">'+
+                            '<a href="javascript:void(0)" comment_id="'+comment_root.id+'" class="comment_reply comment-tool" onclick="comment_reply(this)"><span><i class="layui-icon layui-icon-reply-fill"></i> <span class="tool-text tool-reply">回 复</span></span></a>'+
+                            '<a href="javascript:void(0)" onclick="comment_report()" class="comment-tool comment-report"><span><i class="layui-icon layui-icon-release"></i> <span>举 报</span></span></a>'+
+                        '</div>'+
+                        '<div class="reply_input" comment_id="'+comment_root.id+'"></div>'+
+                    '</div>'+init_comment(comment_child)+
+                    '</li>'
+                    }
+                    layer.open({
+                        title: '查看对话',
+                        type: 1,
+                        skin: 'layui-layer-rim', //加上边框
+                        area: ['420px', '85%'], //宽高
+                        content: item,
+                    });
+                }
+            }
+        })
+
+    })
+
+    function comment_reply_delete(id, e){
+        if($('.username').val()==''){
+            layer.msg('请先登录')
+        }else{
+            layer.confirm('确定要删除该评论?',{
+                btn: ['确定', '取消']
+            },function(){
+                $.ajax({
+                    url: "{% url 'comment:comment_reply_delete' %}",
+                    method: "POST",
+                    data: {'id':id},
+                    dataType: 'json',
+                    success: function(res){
+                        if(res.code=='201'){
+                            dom = $(e).parent().parent()
+                            dom.find('.comment-wrap pre').text(res.tips);
+                            layer.msg(res.tips,{icon:1})
+                        }else if(res.code=='502'){
+                            layer.msg(res.tips,{icon:2})
+                        }else{
+                            layer.msg(res.tips)
+                        }
+                    }
+                })
+            })
+        }
+    }
+</script>
+{% endblock %}

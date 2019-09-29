@@ -1,0 +1,139 @@
+/*滚动条样式*/
+::-webkit-scrollbar { /*滚动条整体样式*/
+    width: 4px; /*高宽分别对应横竖滚动条的尺寸*/
+    height: 4px;
+}
+
+::-webkit-scrollbar-thumb { /*滚动条里面小方块*/
+    border-radius: 5px;
+    -webkit-box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.2);
+    background: rgba(99, 106, 207, 0.8);
+}
+
+::-webkit-scrollbar-track { /*滚动条里面轨道*/
+    -webkit-box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.2);
+    border-radius: 0;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+
+
+/*聊天页面*/
+.chat-panel {
+    width:100%;
+    height: 100%;
+    box-shadow: 0 0 20px 5px #ccc;
+}
+
+.chat-panel .chat-content {
+    position: absolute;
+    width: 100%;
+    height: 70%;
+    background: #fff;
+    overflow-y: scroll;
+}
+
+.chat-panel .chatinput {
+    position: fixed;
+    bottom: 80px;
+    box-shadow: 0 0 20px 5px #ccc;
+}
+
+.clearfloat {
+    zoom: 1;
+    margin: 15px 5px;
+}
+
+.clearfloat:after {
+    display: block;
+    clear: both;
+    content: "";
+    visibility: hidden;
+    height: 0;
+}
+
+.time-column {
+    text-align: center;
+    color: #888;
+}
+
+.chat-nickname {
+    color: #9c9c9c;
+    font-size: 12px;
+    padding: 3px 10px;
+}
+
+.clearfloat .chat-avatars {
+    display: inline-block;
+    height: 30px;
+    width: 30px;
+    border-radius: 50%;
+    border: solid 1px #e0e0e0;
+    line-height: 30px;
+    vertical-align: top;
+    overflow: hidden;
+    overflow: hidden;
+}
+
+.clearfloat .chat-avatars img {
+    width: 100%;
+    height: 100%;
+}
+
+.clearfloat .left .chat-avatars {
+    margin-right: 10px;
+}
+
+.clearfloat .right .chat-avatars {
+    margin-left: 10px;
+}
+
+.clearfloat .left .chat-message {
+    background: #D9D9D9;
+    min-height: 36px;
+}
+
+.clearfloat .chat-message {
+    max-width: 252px;
+    text-align: left;
+    padding: 8px 12px;
+    border-radius: 6px;
+    word-wrap: break-word;
+    display: inline-block;
+    position: relative;
+}
+
+.clearfloat .left .chat-message:before {
+    position: absolute;
+    content: "";
+    top: 8px;
+    left: -6px;
+    border-top: 10px solid transparent;
+    border-bottom: 10px solid transparent;
+    border-right: 10px solid #D9D9D9;
+}
+
+.clearfloat .right {
+    float: right;
+}
+
+.clearfloat .right {
+    text-align: right;
+}
+
+.clearfloat .right .chat-message {
+    background: #8c85e6;
+    color: #fff;
+    text-align: left;
+    min-height: 36px;
+}
+
+.clearfloat .right .chat-message:before {
+    position: absolute;
+    content: "";
+    top: 8px;
+    right: -6px;
+    border-top: 10px solid transparent;
+    border-bottom: 10px solid transparent;
+    border-left: 10px solid #8c85e6;
+}

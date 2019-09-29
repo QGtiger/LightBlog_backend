@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+{% load article_tags %}
+{% load staticfiles %}
+{% block title %} 博客首页 {% endblock %}
+{% block link %}
+<link rel="stylesheet" type="text/css" href="{% static 'css/layui.css' %}">
+{% endblock %}
+{% block content %}
+
+<div class="container">
+    <!--<h1 style="text-align:center">丰富头脑，善化行为</h1>-->
+
+    <div class="layui-row">
+        <div class="layui-col-xs12 layui-col-md8 article-titles">
+            {% carousel_img %}
+            <ul id="flow_demo" ></ul>
+        </div>
+        <div class="layui-col-xs12 layui-col-md4">
+            <div class="article_ranking" style="margin:20px 40px">
+                <h3 class="most-views">最受欢迎文章</h3>
+                {% most_views %}
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block javascript %}
+<script type="text/javascript" src="{% static 'js/jquery-3.1.1.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/layer.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/layui.js' %}"></script>
+<script src="{% static 'js/vue/time.js' %}"></script>
+<script type="text/javascript">
+    var Carousel = $('#Carousel');
+    var width = Carousel.width();
+    Carousel.height(0.42*width);
+    var blog_img = $('.list-group-item-img img');
+    var imgWidth = blog_img.height();
+    blog_img.height(0.8125*imgWidth);
+    window.onresize = function(){
+        var Carousel = $('#Carousel');
+        var width = Carousel.width();
+        Carousel.height(0.432*width);
+
+        var blog_img = $('.list-group-item-img img');
+        var imgWidth = blog_img.width();
+        blog_img.height(0.8125*imgWidth);
+    }
+
+    //js html 转义
+    function htmlEncode(str){
+        return $('<span/>').text(str).html()
+    }
+
+	layui.use(['layer','flow','carousel'],function(){
+		var layer = layui.layer;
+		var flow = layui.flow;
+        var carousel = layui.carousel
+          //图片轮播
+          carousel.render({
+            elem: '#Carousel'
+            ,anim: 'fade'
+            ,width: '100%'
+            ,height: this.width*0.4
+            ,interval: 5000
+          });
+		flow.load({
+			elem: "#flow_demo",
+			is_Auto:true,
+			end: "emm,nothing next",
+			done: function(page,next){
+				var lis = '';
+				$.get('/article/article_page/?page='+page, function(e){
+				    parse_res = JSON.parse(e)
+                    res = parse_res.data
+                    page_num = parse_res.page_num
+                    console.log(res)
+				    for(var i = 0; i < res.length; i++){
+
+                        var item = '<div class="list-group layui-row">'+
+                                '<div class="layui-col-xs9 list-group-item-body">'+
+                                     '<a href="/article/article_content/'+res[i].id+'" class="list-group-item active">'+
+                                        '<h3 class="list-group-item-heading">'+res[i].title+'</h3>'+
+                                    '</a>'+
+                                    '<p class="list-group-item-text">概要:'+htmlEncode(res[i].body)+'...</p>'+
+                                '</div>'+
+                                '<div class="layui-col-xs3 list-group-item-img">'+
+                                    '<a href="/article/article_content/'+res[i].id+'">'+
+                                        '<img width="100%" src="'+ res[i].blog_img_url +'" title="">'+
+                                    '</a>'+
+                                '</div>'+
+                                '<div class="meta">'+
+                                    '<a href="/account/author/'+res[i].author+'">'+
+                                        '<img src="'+res[i].author_img_url+'" class="layui-nav-img small-avator" alt="">'+
+                                    '</a><a href="/account/author/'+res[i].author+'">'+res[i].author+'</a>'+
+                                    '<span class="article-likes"><i class="layui-icon layui-icon-praise"></i> '+res[i].users_like+'</span>'+
+                                    '<span class="article-views"><i class="layui-icon layui-icon-read"></i> '+res[i].views+'</span>'+
+                                    '<span class="update_time">'+Time.getFormatTime(res[i].updated)+'</span>'+
+                                '</div>'+
+                            '</div>';
+
+                        lis+=item;
+
+				    }
+				    next(lis,page<page_num)
+				})
+
+
+			}
+		})
+	})
+</script>
+{% endblock %}

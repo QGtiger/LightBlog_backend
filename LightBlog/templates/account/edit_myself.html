@@ -1,0 +1,285 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+{% block title %} 完善个人信息 {% endblock %}
+{% block link %}
+<link rel="stylesheet" type="text/css" href="{% static 'css/layui.css' %}">
+<link rel="stylesheet" href="{% static 'css/ImgCropping.css' %}">
+<link rel="stylesheet" href="{% static 'css/cropper.min.css' %}">
+{% endblock %}
+
+{% block content %}
+
+
+
+    <div class="layui-row" style="margin:40px 5% 0 5%;">
+        <h1>{{ user.username }}'s Information</h1>
+        <div class="layui-col-xs12 layui-col-md6">
+<form class="layui-form" action="." method="post">{% csrf_token %}
+  <div class="layui-form-item">
+    <label class="layui-form-label">邮箱</label>
+    <div class="layui-input-block">
+      <input type="text" name="eamil" id="email" lay-verify="email" placeholder="请输入邮箱" autocomplete="off" class="layui-input" value="{{ user.email }}">
+    </div>
+  </div>
+
+  <div class="layui-form-item">
+    <label class="layui-form-label">毕业学院</label>
+    <div class="layui-input-block">
+      <input type="text" name="school" id="school" lay-verify="school" placeholder="请输入学院" autocomplete="off" class="layui-input" value="{{ userinfo.school }}">
+    </div>
+  </div>
+  <div class="layui-form-item">
+    <label class="layui-form-label">工作单位</label>
+    <div class="layui-input-block">
+      <input type="text" name="company" id="company" lay-verify="company" placeholder="请输入工作单位" autocomplete="off" class="layui-input" value="{{ userinfo.company }}">
+    </div>
+  </div>
+
+  <div class="layui-form-item">
+    <label class="layui-form-label">职业</label>
+    <div class="layui-input-block">
+      <input type="text" name="profession" id="profession" lay-verify="profession" placeholder="请输入职业" autocomplete="off" class="layui-input" value="{{ userinfo.profession }}">
+    </div>
+  </div>
+
+  <div class="layui-form-item">
+    <label class="layui-form-label">地址</label>
+    <div class="layui-input-block">
+      <input type="text" name="address" id="address" lay-verify="address" placeholder="请输入地址" autocomplete="off" class="layui-input" value="{{ userinfo.address }}">
+    </div>
+  </div>
+
+  <div class="layui-form-item layui-form-text">
+    <label class="layui-form-label">个人介绍</label>
+    <div class="layui-input-block">
+      <textarea placeholder="请输入内容" id="aboutme" class="layui-textarea" name="desc">{{ userinfo.aboutme }}</textarea>
+    </div>
+  </div>
+
+   <div class="layui-form-item">
+        <div class="layui-input-block">
+        <input type="button" class="layui-btn layui-btn-normal" value="发布" onclick="publish_info()">
+        <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+        </div>
+   </div>
+</form>
+        </div>
+        <div class="layui-col-xs12 layui-col-md6" style="padding-left:100px">
+            <div style="width:200px">
+                <img src="{{ userinfo.photo.url }}" class="layui-circle avator" id="finalImg" style="width:200px;height:200px;padding-bottom:10px">
+            </div>
+            <div style="width:200px;display:flex;justify-content:center">
+                <button id="replaceImg" style="margin-right:10px" class="layui-btn layui-btn-normal">更换图片</button>
+                <button id="uploadImg" class="layui-btn layui-btn-normal">上传图片</button>
+            </div>
+        </div>
+
+<!--图片裁剪框 start-->
+<div style="display: none" class="tailoring-container">
+    <div class="black-cloth" onclick="closeTailor(this)"></div>
+    <div class="tailoring-content">
+            <div class="tailoring-content-one">
+                <label title="上传图片" for="chooseImg" class="l-btn choose-btn">
+                    <input type="file" accept="image/jpg,image/jpeg,image/png" name="file" id="chooseImg" class="hidden" onchange="selectImg(this)">
+                    选择图片
+                </label>
+                <div class="close-tailoring"  onclick="closeTailor(this)">×</div>
+            </div>
+            <div class="tailoring-content-two">
+                <div class="tailoring-box-parcel">
+                    <img id="tailoringImg">
+                </div>
+                <div class="preview-box-parcel">
+                    <p>图片预览：</p>
+                    <div class="square previewImg"></div>
+                    <div class="circular previewImg"></div>
+                </div>
+            </div>
+            <div class="tailoring-content-three">
+                <button class="l-btn cropper-reset-btn">复位</button>
+                <button class="l-btn cropper-rotate-btn">旋转</button>
+                <button class="l-btn cropper-scaleX-btn">换向</button>
+                <button class="l-btn sureCut" id="sureCut">确定</button>
+            </div>
+        </div>
+</div>
+<!--图片裁剪框 end-->
+    </div>
+
+{% endblock %}
+
+{% block javascript %}
+<script type="text/javascript" src="{% static 'js/jquery-3.1.1.min.js' %}"></script>
+<script src="{% static 'js/cropper.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/layer.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/layui.js' %}"></script>
+<script>
+layui.use('form');
+
+function publish_info(){
+    var email = $('#email').val();
+    var school = $('#school').val();
+    var company = $('#company').val();
+    var profession = $('#profession').val();
+    var address = $('#address').val();
+    var aboutme = $('#aboutme').val();
+    // alert(JSON.stringify({"email": email,"school":school,"company":company,"profession":profession,"address":address,"aboutme":aboutme}))
+    $.ajax({
+        url: "{% url 'account:edit_myself' %}",
+        type: "POST",
+        data: {"email": email,"school":school,"company":company,"profession":profession,"address":address,"aboutme":aboutme},
+        success: function(e){
+            res = JSON.parse(e);
+            if(res.status=='200'){
+                layer.msg(res.tips);
+                parent.location.reload();
+            }else if(res.status=='500'){
+                layer.msg(res.tips);
+            }
+        }
+    })
+}
+
+
+    //弹出框水平垂直居中
+    (window.onresize = function () {
+        var win_height = $(window).height();
+        var win_width = $(window).width();
+        if (win_width <= 768){
+            $(".tailoring-content").css({
+                "top": (win_height - $(".tailoring-content").outerHeight())/2,
+                "left": 0
+            });
+        }else{
+            $(".tailoring-content").css({
+                "top": (win_height - $(".tailoring-content").outerHeight())/2,
+                "left": (win_width - $(".tailoring-content").outerWidth())/2
+            });
+        }
+    })();
+
+    //弹出图片裁剪框
+    $("#replaceImg").on("click",function () {
+        console.log("Click the replaceImg");
+        $(".tailoring-container").toggle();
+    });
+    //图像上传
+    function selectImg(file) {
+        if (!file.files || !file.files[0]){
+            return;
+        }
+        var reader = new FileReader();
+        reader.onload = function (evt) {
+            var replaceSrc = evt.target.result;
+            //更换cropper的图片
+            $('#tailoringImg').cropper('replace', replaceSrc,false);//默认false，适应高度，不失真
+        }
+        reader.readAsDataURL(file.files[0]);
+    }
+    //cropper图片裁剪
+    $('#tailoringImg').cropper({
+        aspectRatio: 1/1,//默认比例
+        preview: '.previewImg',//预览视图
+        guides: true,  //裁剪框的虚线(九宫格)
+        autoCropArea: 0.5,  //0-1之间的数值，定义自动剪裁区域的大小，默认0.8
+        movable: false, //是否允许移动图片
+        dragCrop: true,  //是否允许移除当前的剪裁框，并通过拖动来新建一个剪裁框区域
+        movable: true,  //是否允许移动剪裁框
+        resizable: true,  //是否允许改变裁剪框的大小
+        zoomable: true,  //是否允许缩放图片大小
+        mouseWheelZoom: true,  //是否允许通过鼠标滚轮来缩放图片
+        touchDragZoom: true,  //是否允许通过触摸移动来缩放图片
+        rotatable: true,  //是否允许旋转图片
+        crop: function(e) {
+            // 输出结果数据裁剪图像。
+        }
+    });
+    //旋转
+    $(".cropper-rotate-btn").on("click",function () {
+        $('#tailoringImg').cropper("rotate", 45);
+    });
+    //复位
+    $(".cropper-reset-btn").on("click",function () {
+        $('#tailoringImg').cropper("reset");
+    });
+    //换向
+    var flagX = true;
+    $(".cropper-scaleX-btn").on("click",function () {
+        if(flagX){
+            $('#tailoringImg').cropper("scaleX", -1);
+            flagX = false;
+        }else{
+            $('#tailoringImg').cropper("scaleX", 1);
+            flagX = true;
+        }
+        flagX != flagX;
+    });
+
+    //裁剪后的处理
+    $("#sureCut").on("click",function () {
+        if ($("#tailoringImg").attr("src") == null ){
+            return false;
+        }else{
+            var cas = $('#tailoringImg').cropper('getCroppedCanvas');//获取被裁剪后的canvas
+            var base64url = cas.toDataURL('image/png'); //转换为base64地址形式
+            //console.log(base64url);
+            $("#finalImg").attr("src",base64url);//显示为图片的形式
+
+            //关闭裁剪框
+            closeTailor();
+        }
+    });
+    //关闭裁剪框
+    function closeTailor() {
+        $(".tailoring-container").toggle();
+    }
+
+    $('#uploadImg').on('click',function(){
+        var uploadimg = $('#finalImg').attr("src");
+        console.log(uploadimg);
+        if(!uploadimg.startsWith('data:image')){
+            layer.alert('请选择图片', {
+                icon: 0,
+                closeBtn: 0,
+                skin: 'layer-ext-moon',
+                time: 5000,//该皮肤由layer.seaning.com友情扩展。关于皮肤的扩展规则，去这里查阅
+                btn: ['明白了','知道了']
+            },function(){
+                layer.msg('明白就好',{icon: 1});
+            });
+        }else{
+            bs64 = uploadimg.split(',')[1];
+            var binary = atob(bs64);
+            var array = [];
+            for (var i = 0; i < binary.length; i++) {
+                array.push(binary.charCodeAt(i));
+            }
+            var blob =  new Blob([new Uint8Array(array)], {type: 'image/jpeg'});
+            //使用FormData()进行ajax请求，上传图片
+            var formdata = new FormData()
+            //图片名称
+            var img_name = new Date().getTime()+'.jpg';
+            formdata.append('uploadimg',blob);
+            $.ajax({
+                url: "{% url 'account:my_image' %}",
+                type: 'POST',
+                data: formdata,
+                dataType: 'json',
+                processData: false,
+                contentType: false,
+                success: function(e){
+                    if(e['status']=='200'){
+                        $('#avator').attr('src',e.photo+'?'+Math.random());
+                        $('#finalImg').attr('src',e.photo+'?'+Math.random());
+                        layer.msg(e['tips']);
+                    }else if(e['status'=='500']){
+                        layer.msg(e['tips']);
+                    }
+                }
+            })
+        }
+
+    })
+
+</script>
+{% endblock %}

@@ -1,0 +1,70 @@
+{% load staticfiles %}
+{% load article_tags %}
+<link rel="stylesheet" type="text/css" href="{% static 'css/layui.css' %}">
+<ul class="layui-nav header" >
+  <li class="layui-nav-item">
+    <a href="{% url 'article:article_titles' %}">博客首页<span class="layui-badge">{% total_articles %}</span></a>
+  </li>
+  <li class="layui-nav-item">
+    <a href="{% url 'chat:chat' %}">聊天室  <i class="layui-icon layui-icon-group"></i><span class="layui-badge-dot"></span></a>
+  </li>
+  <li class="layui-nav-item">
+    <a href="{% url 'comment:message' %}">我的消息  <i class="layui-icon layui-icon-reply-fill"></i><span class="layui-badge read-comments-all" style="display:none"></span></a>
+  </li>
+  <li class="layui-nav-item" lay-unselect="" style="float:right">
+    {% if request.user.username %}
+    <a href="javascript:;"><img id="avator" src="{{ request.user.userinfo.photo_150x150.url }}" class="layui-nav-img avator">{{ request.user.username }}</a>
+    {% else %}
+    <a href="javascript:;"><img id="avator" src="/media/default/default.jpg" class="layui-nav-img avator">{{ request.user.username }}</a>
+    {% endif %}
+    <dl class="layui-nav-child">
+        {% if request.user.username %}
+      <dd><a href="{% url 'account:my_information' %}"><i class="layui-icon layui-icon-username"></i>  个人信息</a></dd>
+      <dd><a href="{% url 'account:edit_myself' %}"><i class="layui-icon layui-icon-edit"></i>  完善信息</a></dd>
+      <dd><a href="{% url 'account:account_setpassword' %}"><i class="layui-icon layui-icon-password"></i>  修改密码</a></dd>
+      <dd><a href="{% url 'article:article_column' %}"><i class="layui-icon layui-icon-vercode"></i>  后台管理</a></dd>
+      <dd><a href="{% url 'account:account_logout' %}"><i class="layui-icon layui-icon-return"></i>  退出登录</a></dd>
+        {% else %}
+        <dd><a href="{% url 'account:account_login' %}">登录</a></dd>
+        <dd><a href="{% url 'account:account_register' %}">注册</a></dd>
+        {% endif %}
+    </dl>
+  </li>
+</ul>
+
+<script type="text/javascript" src="{% static 'js/jquery-3.1.1.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/layui.js' %}"></script>
+<script>
+
+    layui.use('element', function(){
+  		var element = layui.element; //导航的hover效果、二级菜单等功能，需要依赖element模块
+
+  		//监听导航点击
+  		element.on('nav(demo)', function(elem){
+    	//console.log(elem)
+    	layer.msg(elem.text());
+  		});
+	});
+
+	$(function(){
+	    username = $('.username').val()
+	    if(username){
+            $.get('/comment/is_read_comments', function(e){
+                res = JSON.parse(e)
+                nums = res.nums
+                commented_nums = res.commented_nums
+                if(nums+commented_nums != 0){
+                    $('.read-comments-all').css('display','inline-block')
+                    $('.read-comments-all').text(nums+commented_nums)
+                    $('.read-comments').css('display','block')
+                    $('.read-comments').text(nums)
+                    $('.read-commented').css('display','block')
+                    $('.read-commented').text(commented_nums)
+                }
+            })
+	    }
+	})
+
+
+
+</script>

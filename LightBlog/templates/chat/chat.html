@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+{% block title %}Chat room{% endblock %}
+
+{% block link %}
+<link rel="stylesheet" href="{% static 'css/chat/chat.css' %}">
+{% endblock %}
+
+{% block content %}
+
+
+<!--聊天部分，最初是隐藏掉的-->
+<div class="chat-container">
+    <div class="chat-panel">
+        <div class="chat-content">
+            <!--这里显示的是聊天内容-->
+        </div>
+        <input type="text" class="layui-input chatinput" id="chatinput" placeholder="..."><button>发送</button>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block javascript %}
+<script src="{% static 'js/chat/jquery.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/layer.js'%}"></script>
+<script src="{% static 'js/chat/socket.io.js' %}"></script>
+<script src="{% static 'js/chat/chat-room.js' %}"></script>
+{% endblock %}

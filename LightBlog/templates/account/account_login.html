@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+{% block title %}{{ title }}{% endblock %}
+
+{% block link %}
+<link rel="stylesheet" type="text/css" href="{% static 'css/layui.css' %}">
+{% endblock %}
+
+{% block content %}
+<fieldset class="layui-elem-field layui-field-title" style="margin-top: 20px;">
+  <legend>登陆注册</legend>
+</fieldset>
+
+<div style="display: flex;justify-content: center">
+	<div style="width:400px;padding:20px;">
+<form class="layui-form  layui-form-pane" action="." method="POST">{% csrf_token %}
+
+  <div class="layui-form-item">
+    <label class="layui-form-label">用户名:</label>
+    <div class="layui-input-block">
+      <input type="text" name="username" lay-verify="username" autocomplete="off" placeholder="请输入用户名" class="layui-input" id="username">
+    </div>
+  </div>
+  {% if register %}
+  <div class="layui-form-item">
+    <label class="layui-form-label">邮  箱:</label>
+    <div class="layui-input-block">
+      <input type="text" name="email" lay-verify="email" autocomplete="off" placeholder="请输入邮箱" class="layui-input" id="email">
+    </div>
+  </div>
+  {% endif %}
+  <div class="layui-form-item">
+    <label class="layui-form-label">密码:</label>
+    <div class="layui-input-block">
+      <input type="password" name="password" lay-verify="password" placeholder="请输入密码" autocomplete="off" class="layui-input" id="password">
+    </div>
+  </div>
+  {% if new_password %}
+  <div class="layui-form-item">
+    <label class="layui-form-label">{{password_tips}}:</label>
+    <div class="layui-input-block">
+      <input type="password" name="new_password" lay-verify="new_password" autocomplete="off" placeholder="请输入确认密码" class="layui-input" id="new_password">
+    </div>
+  </div>
+  {% endif %}
+  <input type="button"  class="layui-btn layui-btn-normal layui-btn-fluid" lay-submit="" lay-filter="register_or_login" value="确定">
+  <div class="" style="display: flex;justify-content: space-between;margin-top: 10px;font-size: 90%">
+  	<div><a href="{{ unit_2 }}">{{ unit_2_name }}</a></div>
+  	<div><a href="{{ unit_1 }}">{{ unit_1_name }}</a></div>
+  </div>
+
+</form>
+</div>
+</div>
+{% endblock %}
+
+{% block javascript %}
+<script type="text/javascript" src="{% static 'js/jquery-3.1.1.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/layer.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/layui.js' %}"></script>
+<script type="text/javascript">
+	layui.use(['form','layedit'],function(){
+		var form = layui.form;
+		var layedit = layui.layedit;
+
+		form.verify({
+			username: function(value){
+				if(value.length==0){
+					return '用户名不能为空'
+				}
+			}
+			,password: [
+				/^[\S]{6,}$/
+				,'密码不能少于六位'
+			]
+			,content: function(value){
+				layedit.sync(editIndex)
+			}
+		});
+		  //监听提交
+        form.on('submit(register_or_login)', function(data){
+            <!--layer.alert(JSON.stringify(data.field), {-->
+            <!--title: '最终的提交信息'-->
+            <!--})-->
+            register_login()
+            return false;
+        });
+	})
+
+function register_login(){
+    if($('#email').length>0){ //判断是否有email的input标签，来知道是否是登录还是注册
+        var username = $('#username').val();
+        var email = $('#email').val();
+        var password = $('#password').val();
+        var new_password = $('#new_password').val();
+        $.ajax({
+            url: "{% url 'account:account_register' %}",
+            type: "POST",
+            data: {'username':username, 'email_input':email, 'password':password, 'new_password':new_password},
+            success: function(e){
+                res = JSON.parse(e);
+                if(res.status!="5"){
+                    layer.msg(res.tips);
+                }else{
+                    location.href = "{% url 'blog:blog_list' %}";
+                }
+            },
+        });
+    }else{
+        var username = $('#username').val();
+        var password = $('#password').val();
+        $.ajax({
+            url: "{% url 'account:account_login' %}",
+            type: "POST",
+            data: {"username":username,"password":password},
+            success: function(e){
+                res = JSON.parse(e);
+                if(res.status != 1){
+                    layer.msg(res.tips);
+                }else{
+                    location.href = "{% url 'article:article_titles' %}";
+                }
+            },
+        });
+    }
+}
+</script>
+{% endblock %}

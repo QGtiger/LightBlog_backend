@@ -1,0 +1,49 @@
+.comment{
+	margin-top:30px;
+}
+
+.comment-btn{
+	float: right;
+	margin:20px;
+	display: inline-block;
+}
+
+.history-comment{
+	margin-top:100px;
+}
+
+.history-comment li{
+}
+
+.commentator{
+	padding:20px;
+	border-bottom:1px solid #f0f0f0;
+}
+
+.commentator-child{
+	padding-left:50px;
+}
+
+.commentator-img{
+	display: inline-block;
+}
+
+.commentator-info{
+	display: inline-block;
+}
+
+.comment-wrap{
+	padding:10px;
+}
+
+
+.commentator .meta .comment-tool{
+	float:right;
+	color: #b4b4b4 !important;
+	display: none;
+	padding:0 10px;
+}
+
+.commentator .meta .comment-tool:hover{
+	color: black !important;
+}

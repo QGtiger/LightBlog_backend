@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+{% block title %}Light Blog{% endblock %}
+
+{% block content %}
+<div style="margin:20px">
+    <h1 style="text-align:center;">我的博客</h1>
+</div>
+<div class="layui-row" style="margin:0 100px">
+    <div class="layui-col-xs12">
+        <ul>
+            {% for blog in blogs %}
+            <li><a href="{{blog.id}}">{{blog.title}}</a></li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascript %}
+<script src="https://cdn.staticfile.org/jquery/2.1.1/jquery.min.js"></script>
+<script src="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script>
+{% endblock %}

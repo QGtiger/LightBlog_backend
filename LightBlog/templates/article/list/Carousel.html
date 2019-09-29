@@ -1,0 +1,7 @@
+<div class="layui-carousel" id="Carousel">
+  <div carousel-item="">
+      {% for url in img_urls %}
+        <div><img width="100%" src="{{ url.image.url }}" title="{{ url.title }}"></div>
+      {% endfor %}
+  </div>
+</div>

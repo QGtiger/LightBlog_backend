@@ -1,0 +1,180 @@
+{% extends "base.html" %}
+{% load article_tags %}
+{% load staticfiles %}
+{% block title %}{{ title }}{% endblock %}
+
+{% block link %}
+<link rel="stylesheet" type="text/css" href="{% static 'css/layui.css' %}">
+{% endblock %}
+
+{% block content %}
+
+
+    <h1 style="text-align:center">{{ title }}</h1>
+    <h3 style="text-align:center">共发表{% author_total_articles user %}篇文章</h3>
+    <div class="layui-row" style="margin:0 5%;font-size:17px">
+
+        <div class="layui-col-xs12 layui-col-md8">
+            <div class="lay-row">
+                <div class="layui-col-xs4">用户名:</div>
+                <div class="layui-col-xs8">{{user.username}}</div>
+            </div>
+
+            <div class="layui-row">
+                <div class="layui-col-xs4"><span>邮箱:</span></div>
+                <div class="layui-col-xs8">{{user.email}}</div>
+            </div>
+
+            <div class="layui-row">
+                <div class="layui-col-xs4"><span>毕业学校:</span></div>
+                <div class="layui-col-xs8">{{userinfo.school}}</div>
+            </div>
+
+            <div class="layui-row">
+                <div class="layui-col-xs4"><span>工作单位:</span></div>
+                <div class="layui-col-xs8">{{userinfo.company}}</div>
+            </div>
+
+            <div class="layui-row">
+                <div class="layui-col-xs4"><span>职业:</span></div>
+                <div class="layui-col-xs8">{{userinfo.profession}}</div>
+            </div>
+
+            <div class="layui-row">
+                <div class="layui-col-xs4"><span>地址:</span></div>
+                <div class="layui-col-xs8">{{userinfo.address}}</div>
+            </div>
+
+            <div class="layui-row">
+                <div class="layui-col-xs4"><span>个人介绍:</span></div>
+                <div class="layui-col-xs8">{{userinfo.aboutme}}</div>
+            </div>
+
+        </div>
+
+        <div class="layui-col-xs12 layui-col-md4" style="display:flex;justify-content:center;padding-top:20px">
+            <div style="width:200px">
+                <img src="{{ userinfo.photo.url }}" class="layui-circle" id="my_photo" style="width:200px;height:200px;padding-bottom:10px">
+            </div>
+        </div>
+    </div>
+
+<div class="layui-tab layui-tab-brief" lay-filter="docDemoTabBrief" style="margin: 0 5%">
+    <ul class="layui-tab-title">
+        <li class="layui-this">个人文章</li>
+        <li>点赞文章</li>
+    </ul>
+    <div class="layui-tab-content" style="height: 100px;">
+        <ul class="layui-tab-item layui-show" id="flow_myself"></ul>
+        <ul class="layui-tab-item" id="flow_article"></ul>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascript %}
+<script type="text/javascript" src="{% static 'js/jquery-3.1.1.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/layer.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/layui.js' %}"></script>
+<script src="{% static 'js/vue/time.js' %}"></script>
+<script type="text/javascript">
+	layui.use(['layer','flow','element'],function(){
+		var layer = layui.layer;
+		var flow = layui.flow;
+		var element = layui.element;
+
+		flow.load({
+			elem: "#flow_myself",
+			is_Auto:true,
+			end: "emm,nothing next",
+			is_Lazyimg: true,
+			done: function(page,next){
+				var lis = '';
+				$.get('/account/article_page/{{user.username}}?page='+page, function(e){
+				    parse_res = JSON.parse(e)
+                    res = parse_res.data
+                    page_num = parse_res.page_num
+                    console.log(res)
+				    for(var i = 0; i < res.length; i++){
+
+                        var item = '<div class="list-group layui-row">'+
+                                '<div class="layui-col-xs9 list-group-item-body">'+
+                                     '<a href="/article/article_content/'+res[i].id+'" class="list-group-item active">'+
+                                        '<h3 class="list-group-item-heading">'+res[i].title+'</h3>'+
+                                    '</a>'+
+                                    '<p class="list-group-item-text">概要:'+res[i].body+'...</p>'+
+                                '</div>'+
+                                '<div class="layui-col-xs3 list-group-item-img">'+
+                                    '<a href="/article/article_content/'+res[i].id+'">'+
+                                        '<img width="165px" src="'+ res[i].blog_img_url +'" title="">'+
+                                    '</a>'+
+                                '</div>'+
+                                '<div class="meta">'+
+                                    '<span class="article-likes"><i class="layui-icon layui-icon-praise"></i> '+res[i].users_like+'</span>'+
+                                    '<span class="update_time">'+Time.getFormatTime(res[i].updated)+'</span>'+
+                                '</div>'+
+                        '</div>';
+
+                        lis+=item;
+
+				    }
+				    next(lis,page<page_num)
+				})
+
+
+			}
+		})
+
+		flow.load({
+			elem: "#flow_article",
+			is_Auto:true,
+			end: "emm,nothing next",
+			is_Lazyimg: true,
+			done: function(page,next){
+				var lis = '';
+				$.get('/account/article_like/{{ user.username }}?page='+page, function(e){
+				    parse_res = JSON.parse(e)
+                    res = parse_res.data
+                    page_num = parse_res.page_num
+                    console.log(res)
+				    for(var i = 0; i < res.length; i++){
+
+                        var item = '<div class="list-group layui-row">'+
+                                '<div class="layui-col-xs9 list-group-item-body">'+
+                                     '<a href="/article/article_content/'+res[i].id+'" class="list-group-item active">'+
+                                        '<h3 class="list-group-item-heading">'+res[i].title+'</h3>'+
+                                    '</a>'+
+                                    '<p class="list-group-item-text">概要:'+res[i].body+'...</p>'+
+                                '</div>'+
+                                '<div class="layui-col-xs3 list-group-item-img">'+
+                                    '<a href="/article/article_content/'+res[i].id+'">'+
+                                        '<img width="100%" src="'+ res[i].blog_img_url +'" title="">'+
+                                    '</a>'+
+                                '</div>'+
+                                '<div class="meta">'+
+                                    '<a href="/account/author/'+res[i].author+'">'+
+                                        '<img src="'+res[i].author_img_url+'" class="layui-nav-img small-avator" alt="">'+
+                                    '</a><a href="/account/author/'+res[i].author+'">'+res[i].author+'</a>'+
+                                    '<span class="article-likes"><i class="layui-icon layui-icon-praise"></i> '+res[i].users_like+'</span>'+
+                                    '<span class="article-views"><i class="layui-icon layui-icon-read"></i> '+res[i].views+'</span>'+
+                                    '<span class="update_time">'+Time.getFormatTime(res[i].updated)+'</span>'+
+                                '</div>'+
+                            '</div>';
+
+                        lis+=item;
+
+				    }
+				    next(lis,page<page_num)
+				})
+
+
+			}
+		})
+	})
+</script>
+
+<script>
+    $(function(){
+        $('#my_photo').attr('src',$('#my_photo').attr('src')+'?'+Math.random())
+    })
+</script>
+{% endblock %}

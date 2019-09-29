@@ -1,0 +1,38 @@
+{% load staticfiles %}
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/header.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/layui.css' %}">
+    <link rel="stylesheet" href="{% static 'css/article_comment.css' %}">
+    <script type="text/javascript" src="{% static 'js/jquery-3.1.1.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/layer.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/layui.js' %}"></script>
+    <script src="{% static 'js/vue/time.js' %}"></script>
+    <link rel="shortcut icon" href="/media/default/favicon.ico" />
+</head>
+<body>
+<div>
+    {% include 'header.html' %}
+    <div  class="content" style="margin:10px 10px 100px 10px">
+        {% if request.user %}
+        <input class="username" type="hidden" value="{{ request.user.username }}">
+        {% else %}
+        <input class="username" type="hidden">
+        {% endif %}
+    <div class="layui-col-md2">
+        {% include 'comment/leftslider.html' %}
+    </div>
+    <div class="layui-col-md10" style="padding-bottom:100px">
+        {% block content %}
+        {% endblock %}
+    </div>
+    {% include 'footer.html' %}
+    </div>
+</div>
+</body>
+</html>
