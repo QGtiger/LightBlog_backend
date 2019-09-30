@@ -30,7 +30,7 @@ urlpatterns = [
     # 博客的点赞
     path('like_article/',views.like_article,name="like_article"),
     # 博客首页的流加载
-    path('article_page/',list_views.article_page, name="article_page"),
+    path('article_page',list_views.article_page, name="article_page"),
     # 评论的点赞功能
     path('comment_like/',list_views.comment_like, name='comment_like'),
     # 评论的删除功能

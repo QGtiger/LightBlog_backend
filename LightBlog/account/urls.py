@@ -13,6 +13,8 @@ urlpatterns = [
     path(r'register',views.account_register,name='account_register'),
     # 密码重置
     path(r'setpassword/',views.account_setpassword,name='account_setpassword'),
+    # 是否登录
+    path(r'islogin', views.account_islogin, name="account_islogin"),
     # 个人信息查询
     path(r'myinformation/',views.myself,name='my_information'),
     # 个人信息编辑

@@ -45,7 +45,7 @@ def account_login(request):
 
                     # token
                     token = jwt.encode({
-                            'exp':datetime.utcnow()+timedelta(seconds=settings.TOKEN_EXPIRE_TIME),
+                            'exp':datetime.utcnow()+timedelta(minutes=settings.TOKEN_EXPIRE_TIME),
                             'iat':datetime.utcnow(),
                             'data': {
                                 'username': username
@@ -100,7 +100,7 @@ def account_register(request):
             UserInfo.objects.create(user=user)
             UserToken.objects.create(user=user)
             token = jwt.encode({
-                    'exp':datetime.utcnow()+timedelta(seconds=settings.TOKEN_EXPIRE_TIME),
+                    'exp':datetime.utcnow()+timedelta(minutes=settings.TOKEN_EXPIRE_TIME),
                     'iat':datetime.utcnow(),
                     'data': {
                         'username': username
@@ -113,6 +113,14 @@ def account_register(request):
                 {'status': 5, 'tips': ' 注册成功,直接登录 ', 'token': token}))
             # tips = ' 注册成功 '
     return render(request, 'account/account_login.html', locals())
+
+
+# 判断是否是登录用户，其实在请求拦截器就做了验证，这里就简单正确返回数据
+def account_islogin(request):
+    token = request.META.get('HTTP_AUTHORIZATION')
+    dict = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
+    username = dict.get('data').get('username')
+    return HttpResponse(json.dumps({'success': True, 'tips': '登录用户 '+username, 'username': username}))
 
 
 @csrf_exempt

@@ -68,7 +68,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'account.loginmiddleware.SimpleMiddleware'
+    'account.loginmiddleware.SimpleMiddleware' # 拦截器
 ]
 
 CORS_ORIGIN_WHITELIST = (
@@ -188,7 +188,7 @@ REDIS_PORT = '6379'
 REDIS_DB = 0
 
 # token 过期时间
-TOKEN_EXPIRE_TIME = 30
+TOKEN_EXPIRE_TIME = 10
 
 # token密钥
 SECRET_KEY = 'LightBlog'

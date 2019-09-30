@@ -71,7 +71,7 @@
 			end: "emm,nothing next",
 			done: function(page,next){
 				var lis = '';
-				$.get('/article/article_page/?page='+page, function(e){
+				$.get('/article/article_page?page='+page, function(e){
 				    parse_res = JSON.parse(e)
                     res = parse_res.data
                     page_num = parse_res.page_num

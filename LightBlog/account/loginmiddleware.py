@@ -18,13 +18,12 @@ class SimpleMiddleware(MiddlewareMixin):
                 pass
             else:
                 return HttpResponse(json.dumps({'tips': '您未登录', 'status':402}))
-            
-            try:    
+            try:
                 dict = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
                 username = dict.get('data').get('username')
             except jwt.ExpiredSignatureError:
-                return JsonResponse({"status": 401, "tips": "Token expired"})
+                return HttpResponse(json.dumps({"status": 401, "tips": "Token expired"}))
             except jwt.InvalidTokenError:
-                return JsonResponse({"status": 401, "tips": "Invalid token"})
+                return HttpResponse(json.dumps({"status": 401, "tips": "Invalid token"}))
             except Exception as e:
-                return JsonResponse({"status": 401, "tips": "Can not get user object"})
+                return HttpResponse(json.dumps({"status": 401, "tips": "Invalid token"}))
