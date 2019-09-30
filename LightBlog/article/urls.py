@@ -24,7 +24,7 @@ urlpatterns = [
     # 博客首页
     path('list_article_titles/',list_views.article_titles,name="article_titles"),
     # 博客页面
-    path('article_content/<int:article_id>/',list_views.article_content,name="article_content"),
+    path('article_content/<int:article_id>',list_views.article_content,name="article_content"),
     # 博客评论的流加载
     path('article_comment/<int:article_id>/',list_views.comment_page, name="comment_page"),
     # 博客的点赞
