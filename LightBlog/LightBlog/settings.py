@@ -188,7 +188,7 @@ REDIS_PORT = '6379'
 REDIS_DB = 0
 
 # token 过期时间
-TOKEN_EXPIRE_TIME = 10
+TOKEN_EXPIRE_TIME = 60
 
 # token密钥
 SECRET_KEY = 'LightBlog'
