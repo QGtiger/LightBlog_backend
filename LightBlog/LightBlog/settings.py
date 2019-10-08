@@ -68,7 +68,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    # 'account.loginmiddleware.SimpleMiddleware' # 拦截器
+    'account.loginmiddleware.SimpleMiddleware' # 拦截器
 ]
 
 CORS_ORIGIN_WHITELIST = (
