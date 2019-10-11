@@ -1,6 +1,7 @@
 from django.urls import path,re_path
 from . import views
 from . import list_views
+from . import lightblog_views
 
 app_name = 'article'
 
@@ -34,5 +35,10 @@ urlpatterns = [
     # 评论的点赞功能
     path('comment_like/',list_views.comment_like, name='comment_like'),
     # 评论的删除功能
-    path('comment_delete',list_views.comment_delete, name='comment_delete')
+    path('comment_delete',list_views.comment_delete, name='comment_delete'),
+
+    # 获取专栏
+    path('api/get/special_column', lightblog_views.special_column),
+    # 增加专栏
+    path('api/add/special_column', lightblog_views.add_special_column)
 ]

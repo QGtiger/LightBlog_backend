@@ -66,7 +66,7 @@ def article_page(request):
                               'blog_img_url': articles[i].image_preview.url})
     # return HttpResponse(serializers.serialize("json",articles))
     return HttpResponse(json.dumps(
-        {'static': 200, 'data': articles_json, 'page_num': paginator.num_pages}))
+        {'static': 200, 'data': articles_json, 'page_num': paginator.num_pages, "success": True}))
 
 
 @csrf_exempt

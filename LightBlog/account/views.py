@@ -3,7 +3,6 @@ from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout
-from django.conf import settings
 import random
 from django.contrib.auth.hashers import make_password
 import re
@@ -19,6 +18,7 @@ import time
 import os
 import redis
 import jwt
+from django.conf import settings
 from datetime import datetime, timedelta
 r = redis.Redis(host=settings.REDIS_HOST, port=settings.REDIS_PORT)
 
@@ -53,15 +53,15 @@ def account_login(request):
                         },settings.SECRET_KEY, algorithm='HS256').decode('utf-8')
                     UserToken.objects.update_or_create(user=user, defaults={"token": token})
                     return HttpResponse(json.dumps(
-                        {'status': 1, 'tips': ' 登录成功 ', 'token': token}))
+                        {'status': 1, 'tips': ' 登录成功 ', 'token': token, "success": True}))
             else:
                 # tips = ' 账号错误，请重新输入 '
                 return HttpResponse(json.dumps(
-                    {'status': 2, 'tips': ' 密码错误，请重新输入 '}))
+                    {'status': 2, 'tips': ' 密码错误，请重新输入 ', "success": False}))
         else:
             # tips = ' 用户名不存在，请注册 '
             return HttpResponse(json.dumps(
-                {'status': 3, 'tips': ' 用户名不存在，请注册 '}))
+                {'status': 3, 'tips': ' 用户名不存在，请注册 ',"success": False}))
     return render(request, 'account/account_login.html', locals())
 
 
@@ -86,13 +86,13 @@ def account_register(request):
         password = request.POST.get('password', '')
         re_password = request.POST.get('new_password', '')
         if User.objects.filter(username=username):
-            return HttpResponse(json.dumps({'status': 1, 'tips': ' 用户名已存在 '}))
+            return HttpResponse(json.dumps({'status': 1, 'tips': ' 用户名已存在 ',"success": False}))
         elif not re.match(r'^[0-9a-zA-Z_]{0,19}@[0-9a-zA-Z]{1,13}\.[com,cn,net]{1,3}$', email):
-            return HttpResponse(json.dumps({'status': 2, 'tips': ' 邮箱格式不正确 '}))
+            return HttpResponse(json.dumps({'status': 2, 'tips': ' 邮箱格式不正确 ',"success": False}))
         elif password != re_password:
-            return HttpResponse(json.dumps({'status': 3, 'tips': ' 前后密码不同 '}))
+            return HttpResponse(json.dumps({'status': 3, 'tips': ' 前后密码不同 ',"success": False}))
         elif password == '' or len(password) < 6:
-            return HttpResponse(json.dumps({'status': 4, 'tips': ' 密码不少于六位 '}))
+            return HttpResponse(json.dumps({'status': 4, 'tips': ' 密码不少于六位 ',"success": False}))
         else:
             user = User.objects.create_user(
                 username=username, password=password, email=email)
@@ -110,7 +110,7 @@ def account_register(request):
             login(request, user)
             # return redirect('/blog/')
             return HttpResponse(json.dumps(
-                {'status': 5, 'tips': ' 注册成功,直接登录 ', 'token': token}))
+                {'status': 5, 'tips': ' 注册成功,直接登录 ', 'token': token,"success": True}))
             # tips = ' 注册成功 '
     return render(request, 'account/account_login.html', locals())
 
@@ -120,7 +120,7 @@ def account_islogin(request):
     token = request.META.get('HTTP_AUTHORIZATION')
     dict = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
     username = dict.get('data').get('username')
-    return HttpResponse(json.dumps({'success': True, 'tips': '登录用户 '+username, 'username': username}))
+    return HttpResponse(json.dumps({'success': True, 'tips': '登录用户 '+username, 'username': username,"success": True}))
 
 
 @csrf_exempt

@@ -31,6 +31,22 @@ def article_img_path(instance, filename):
     return os.path.join('previewBlog', str(instance.author.id), filename)
 
 
+def lightblog_articleimgs(instance, filename):
+    return os.path.join('LightBlogArticleImages', str(instance.article.id), filename)
+
+
+def lightblog_specialcolumn(instance, filename):
+    return os.path.join('SpecialColumn', str(instance.special_column), filename)
+
+
+def lightblog_personalcolumn(instance, filename):
+    return os.path.join('PersonalColumn', str(instance.create_user.id), filename)
+
+
+def lightblog_articlepreview(instance, filename):
+    return os.path.join('LightBlogArticlePreview', str(instance.id), filename)
+
+
 class ArticlePost(models.Model):
     author = models.ForeignKey(
         User,
@@ -68,6 +84,95 @@ class ArticlePost(models.Model):
     def save(self, *args, **kargs):
         self.slug = slugify(self.title)
         super(ArticlePost, self).save(*args, **kargs)
+
+
+class LightBlogSpecialColumn(models.Model):
+    create_user = models.ForeignKey(
+        User,
+        related_name='lightblog_specialcolumn',
+        on_delete=models.CASCADE
+    )
+    special_column = models.CharField(' 专栏名称 ', max_length=50)
+    created = models.DateTimeField(' 创建时间 ', default=timezone.now)
+    description = models.CharField(' 专栏简介 ', max_length=100)
+    image_preview = ProcessedImageField(
+        upload_to=lightblog_specialcolumn,
+        processors=[ResizeToFill(240, 240)],
+        format='JPEG',
+        options={'quality':98},
+        default='default/preview.jpg',
+        verbose_name='展示图片')
+
+
+class LightBlogPersonalColumn(models.Model):
+    create_user = models.ForeignKey(
+        User,
+        related_name='lightblog_personalcolumn',
+        on_delete=models.CASCADE
+    )
+    personal_column = models.CharField(' 个人栏目 ', max_length=20)
+    created = models.DateTimeField(' 创建时间 ', default=timezone.now)
+    description = models.CharField(' 栏目简介 ', max_length=100)
+    image_preview = ProcessedImageField(
+        upload_to=lightblog_personalcolumn,
+        processors=[ResizeToFill(240, 240)],
+        format='JPEG',
+        options={'quality':98},
+        default='default/preview.jpg',
+        verbose_name='展示图片')
+
+
+class LightBlogArticle(models.Model):
+    author = models.ForeignKey(
+        User,
+        related_name='lightblog_article',
+        on_delete=models.CASCADE
+    )
+    title = models.CharField(' 文章标题 ', max_length=50)
+    specialColumn = models.ForeignKey(
+        LightBlogSpecialColumn,
+        related_name='article_specialcolumn',
+        on_delete=models.CASCADE
+    )
+    personalColumn = models.ForeignKey(
+        LightBlogPersonalColumn,
+        related_name='article_personalcolumn',
+        on_delete=models.CASCADE
+    )
+    article_status = models.IntegerField(default=1)
+    created = models.DateTimeField(' 创建时间 ', default=timezone.now)
+    updated = models.DateTimeField(' 更新时间 ', auto_now=True)
+    article_body = models.TextField(' 文章内容 ')
+    article_wordCount = models.IntegerField(' 文章字数 ', default=233)
+    article_preview = ProcessedImageField(
+        upload_to=lightblog_articlepreview,
+        processors=[ResizeToFill(320, 260)],
+        format='JPEG',
+        options={'quality':98},
+        default='default/preview.jpg',
+        verbose_name='展示图片')
+    article_descripton = models.CharField(' 文章简介 ', max_length=30)
+    isRecommend = models.BooleanField(' 是否推荐 ', default=False)
+    users_like = models.ManyToManyField(
+        User, related_name="lightblog_users_like", blank=True)
+    users_dislike = models.ManyToManyField(
+        User, related_name="lightblog_users_dislike", blank=True)
+
+
+
+
+class LightBlogArticleImage(models.Model):
+    article = models.ForeignKey(
+        LightBlogArticle,
+        on_delete=models.CASCADE,
+        related_name="lightblog_articleimage"
+    )
+    image_preview = ProcessedImageField(
+        upload_to=lightblog_articleimgs,
+        processors=[ResizeToFill(640, 480)],
+        format='JPEG',
+        options={'quality':98},
+        verbose_name='上传图片')
 
 
 class Comment(models.Model):
