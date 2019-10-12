@@ -35,6 +35,8 @@ def add_special_column(request):
     try:
         column_name = request.POST.get('columnName','')
         description = request.POST.get('description', '')
+        if column_name == '' or description == '':
+            return HttpResponse(json.dumps({"success": False, "tips": "不能为空"}))
         token = request.META.get('HTTP_AUTHORIZATION')
         dict = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
         username = dict.get('data').get('username')
@@ -42,5 +44,16 @@ def add_special_column(request):
         column = LightBlogSpecialColumn(create_user=user, special_column=column_name, description=description)
         column.save()
         return HttpResponse(json.dumps({"success": True, "tips": '专栏创建成功'}))
+    except Exception as e:
+        return HttpResponse(json.dumps({"success": False, "tips": 'somethong error'}))
+
+
+@csrf_exempt
+def del_special_column(request):
+    try:
+        column_id = request.POST.get('columnId', '')
+        column = LightBlogSpecialColumn.objects.get(id=column_id)
+        column.delete()
+        return HttpResponse(json.dumps({"success": True, "tips": '专栏删除成功'}))
     except Exception as e:
         return HttpResponse(json.dumps({"success": False, "tips": 'somethong error'}))
