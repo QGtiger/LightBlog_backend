@@ -35,6 +35,7 @@ def add_special_column(request):
     try:
         column_name = request.POST.get('columnName','')
         description = request.POST.get('description', '')
+        cover_image = request.FILES.get('cover_image', '')
         if column_name == '' or description == '':
             return HttpResponse(json.dumps({"success": False, "tips": "不能为空"}))
         token = request.META.get('HTTP_AUTHORIZATION')
@@ -43,6 +44,7 @@ def add_special_column(request):
         user = User.objects.get(username=username)
         column = LightBlogSpecialColumn(create_user=user, special_column=column_name, description=description)
         column.save()
+        column.image_preview.save(str(column.special_column) + '.jpg', cover_image)
         return HttpResponse(json.dumps({"success": True, "tips": '专栏创建成功'}))
     except Exception as e:
         return HttpResponse(json.dumps({"success": False, "tips": 'somethong error'}))

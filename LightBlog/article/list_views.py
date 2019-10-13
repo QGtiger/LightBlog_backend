@@ -49,22 +49,27 @@ def article_page(request):
         current_page = paginator.page(paginator.num_pages)
         articles = current_page.object_list
     articles_json = []
-    for i in range(len(articles)):
-        view = r.get('article:{}:views'.format(articles[i].id))
-        if view is None:
-            view_count = 0
-        else:
-            view_count = view.decode('utf-8')
-        articles_json.append({'id': articles[i].id,
-                              'author': articles[i].author.username,
-                              'author_img_url': articles[i].author.userinfo.photo_150x150.url,
-                              'title': articles[i].title,
-                              'updated': time.mktime(articles[i].updated.timetuple()),
-                              'body': init_blog(articles[i].body[:200]),
-                              'users_like': articles[i].users_like.count(),
-                              'views': view_count,
-                              'blog_img_url': articles[i].image_preview.url})
+    try:
+        for i in range(len(articles)):
+            view = r.get('article:{}:views'.format(articles[i].id))
+            if view is None:
+                view_count = 0
+            else:
+                view_count = view.decode('utf-8')
+            articles_json.append({'id': articles[i].id,
+                                'author': articles[i].author.username,
+                                'author_img_url': articles[i].author.userinfo.photo_150x150.url,
+                                'title': articles[i].title,
+                                'updated': time.mktime(articles[i].updated.timetuple()),
+                                'body': init_blog(articles[i].body[:200]),
+                                'users_like': articles[i].users_like.count(),
+                                'views': view_count,
+                                'blog_img_url': articles[i].image_preview.url})
+    except Exception as e:
+        print(e)
+        return HttpResponse(json.dumps({'success': False, 'tips': 'something error'}))
     # return HttpResponse(serializers.serialize("json",articles))
+    print(articles_json)
     return HttpResponse(json.dumps(
         {'static': 200, 'data': articles_json, 'page_num': paginator.num_pages, "success": True}))
 

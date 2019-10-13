@@ -36,7 +36,7 @@ def lightblog_articleimgs(instance, filename):
 
 
 def lightblog_specialcolumn(instance, filename):
-    return os.path.join('SpecialColumn', str(instance.special_column), filename)
+    return os.path.join('SpecialColumn', str(instance.id), filename)
 
 
 def lightblog_personalcolumn(instance, filename):
