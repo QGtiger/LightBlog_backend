@@ -11,6 +11,8 @@ import json
 import re
 import requests
 from django.core.files.base import ContentFile
+import jwt
+from django.conf import settings
 
 
 # Create your views here.
@@ -60,10 +62,11 @@ def del_article_column(request):
         return HttpResponse("2")
 
 
-@login_required(login_url='/account/login/')
-@csrf_exempt
 def article_post(request):
-    user = request.user
+    token = request.META.get('HTTP_AUTHORIZATION')
+    dict = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
+    username = dict.get('data').get('username')
+    user = User.objects.get(username=username)
     if request.method == 'POST':
         data = request.POST
         article_post_form = ArticlePostForm(data=data)

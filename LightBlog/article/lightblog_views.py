@@ -59,3 +59,20 @@ def del_special_column(request):
         return HttpResponse(json.dumps({"success": True, "tips": '专栏删除成功'}))
     except Exception as e:
         return HttpResponse(json.dumps({"success": False, "tips": 'somethong error'}))
+
+
+@csrf_exempt
+def special_column_detail(request):
+    try:
+        column_id = request.POST.get('columnId', '')
+        column = LightBlogSpecialColumn.objects.get(id=column_id)
+        column_detail = {
+            "description": column.description,
+            "created": time.mktime(column.created.timetuple()),
+            "special_column": column.special_column,
+            "createUser": column.create_user.username,
+            "previewImg": column.image_preview.url
+        }
+        return HttpResponse(json.dumps({"success": True, "data": column_detail}))
+    except Exception as e:
+        return HttpResponse(json.dumps({"success": False, "tips": str(e)}))

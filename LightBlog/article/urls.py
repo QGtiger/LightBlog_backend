@@ -42,5 +42,7 @@ urlpatterns = [
     # 增加专栏
     path('api/add/special_column', lightblog_views.add_special_column),
     # 删除专栏
-    path('api/del/special_column', lightblog_views.del_special_column)
+    path('api/del/special_column', lightblog_views.del_special_column),
+    # 专栏详情
+    path('api/detail/special_column', lightblog_views.special_column_detail)
 ]

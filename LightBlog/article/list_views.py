@@ -69,7 +69,6 @@ def article_page(request):
         print(e)
         return HttpResponse(json.dumps({'success': False, 'tips': 'something error'}))
     # return HttpResponse(serializers.serialize("json",articles))
-    print(articles_json)
     return HttpResponse(json.dumps(
         {'static': 200, 'data': articles_json, 'page_num': paginator.num_pages, "success": True}))
 
