@@ -39,6 +39,9 @@ def lightblog_specialcolumn(instance, filename):
     return os.path.join('SpecialColumn', str(instance.id), filename)
 
 
+def lightblog_specialtheme(instance, filename):
+    return os.path.join('SpecialTheme', str(instance.id), filename)
+
 def lightblog_personalcolumn(instance, filename):
     return os.path.join('PersonalColumn', str(instance.create_user.id), filename)
 
@@ -104,6 +107,29 @@ class LightBlogSpecialColumn(models.Model):
         verbose_name='展示图片')
 
 
+class LightBlogSpecialTheme(models.Model):
+    create_user = models.ForeignKey(
+        User,
+        related_name='lightblog_specialtheme',
+        on_delete=models.CASCADE
+    )
+    special_column = models.ForeignKey(
+        LightBlogSpecialColumn,
+        related_name='lightblog_specialcolumn',
+        on_delete=models.CASCADE
+    )
+    special_theme = models.CharField(' 专题名称 ', max_length=50)
+    created = models.DateTimeField(' 创建时间 ', default=timezone.now)
+    description = models.CharField(' 专题简介 ', max_length=100)
+    image_preview = ProcessedImageField(
+        upload_to=lightblog_specialtheme,
+        processors=[ResizeToFill(240, 240)],
+        format='JPEG',
+        options={'quality':98},
+        default='default/preview.jpg',
+        verbose_name='展示图片')
+
+
 class LightBlogPersonalColumn(models.Model):
     create_user = models.ForeignKey(
         User,
@@ -132,6 +158,11 @@ class LightBlogArticle(models.Model):
     specialColumn = models.ForeignKey(
         LightBlogSpecialColumn,
         related_name='article_specialcolumn',
+        on_delete=models.CASCADE
+    )
+    specialTheme = models.ForeignKey(
+        LightBlogSpecialTheme,
+        related_name='article_specialtheme',
         on_delete=models.CASCADE
     )
     personalColumn = models.ForeignKey(

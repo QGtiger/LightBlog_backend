@@ -44,5 +44,13 @@ urlpatterns = [
     # 删除专栏
     path('api/del/special_column', lightblog_views.del_special_column),
     # 专栏详情
-    path('api/detail/special_column', lightblog_views.special_column_detail)
+    path('api/detail/special_column', lightblog_views.special_column_detail),
+    # 修改专栏
+    path('api/update/special_column', lightblog_views.update_special_column),
+    # 获取专题list
+    path('api/get/special_theme', lightblog_views.special_theme),
+    # 新增专题
+    path('api/add/special_theme', lightblog_views.add_special_theme),
+    # 删除专题
+    path('api/del/special_theme', lightblog_views.del_special_theme)
 ]
