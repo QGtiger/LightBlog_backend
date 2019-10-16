@@ -52,5 +52,13 @@ urlpatterns = [
     # 新增专题
     path('api/add/special_theme', lightblog_views.add_special_theme),
     # 删除专题
-    path('api/del/special_theme', lightblog_views.del_special_theme)
+    path('api/del/special_theme', lightblog_views.del_special_theme),
+    # 专题详情
+    path('api/detail/special_theme',lightblog_views.detail_special_theme),
+    # 更新专题
+    path('api/update/special_theme', lightblog_views.update_special_theme),
+    # 发布专题
+    path('api/publish/special_theme', lightblog_views.publish_special_theme),
+    # 下架专题
+    path('api/down/special_theme', lightblog_views.down_special_theme),
 ]

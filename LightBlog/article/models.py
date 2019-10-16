@@ -121,6 +121,7 @@ class LightBlogSpecialTheme(models.Model):
     special_theme = models.CharField(' 专题名称 ', max_length=50)
     created = models.DateTimeField(' 创建时间 ', default=timezone.now)
     description = models.CharField(' 专题简介 ', max_length=100)
+    isPublish = models.IntegerField(' 是否发布 ', default=0)
     image_preview = ProcessedImageField(
         upload_to=lightblog_specialtheme,
         processors=[ResizeToFill(240, 240)],

@@ -102,9 +102,19 @@ def update_special_column(request):
 @csrf_exempt
 def special_theme(request):
     try:
-        themeList = LightBlogSpecialTheme.objects.all()
         page = request.GET.get('page')
         size = request.GET.get('size')
+        status = request.POST.get('status', '')
+        columnId = request.POST.get('columnId', '')
+        content = request.POST.get('content', '')
+        themeList = LightBlogSpecialTheme.objects.all()
+        if columnId != '':
+            column = LightBlogSpecialColumn.objects.get(id=columnId)
+            themeList = themeList.filter(special_column=column)
+        if content != '':
+            themeList = themeList.filter(special_theme__icontains=content)
+        if status != '':
+            themeList = themeList.filter(isPublish=status)
         paginator = Paginator(themeList, size)
         try:
             current_page = paginator.page(page)
@@ -122,7 +132,8 @@ def special_theme(request):
                                        "specialThemeId": list[i].id,
                                        "specialTheme": list[i].special_theme,
                                        'created': time.mktime(list[i].created.timetuple()),
-                                       'description': list[i].description})
+                                       'description': list[i].description,
+                                       "status": list[i].isPublish})
         return HttpResponse(json.dumps({"success": True, "data": special_theme_list, "total":len(themeList)}))
     except Exception as e:
         return HttpResponse(json.dumps({"success": False, "tips": str(e)}))
@@ -159,5 +170,70 @@ def del_special_theme(request):
         theme = LightBlogSpecialTheme.objects.get(id=themeId)
         theme.delete()
         return HttpResponse(json.dumps({"success": True, "tips": "删除专题成功"}))
+    except Exception as e:
+        return HttpResponse(json.dumps({"success": False, "tips": str(e)}))
+
+
+# 专题详情
+@csrf_exempt
+def detail_special_theme(request):
+    try:
+        themeId = request.POST.get('themeId', '')
+        theme = LightBlogSpecialTheme.objects.get(id=themeId)
+        theme_detail = {
+            "description": theme.description,
+            "created": time.mktime(theme.created.timetuple()),
+            "special_columnId": theme.special_column.id,
+            "createUser": theme.create_user.username,
+            "previewImg": theme.image_preview.url,
+            "special_theme": theme.special_theme
+        }
+        return HttpResponse(json.dumps({"success": True, "data": theme_detail}))
+    except Exception as e:
+        return HttpResponse(json.dumps({"success": False, "tips": str(e)}))
+
+
+# 更新update 专题
+@csrf_exempt
+def update_special_theme(request):
+    try:
+        themeId = request.POST.get('themeId', '')
+        description = request.POST.get('description', '')
+        themeName = request.POST.get('themeName', '')
+        columnId = request.POST.get('columnId', '')
+        is_updateImage = request.POST.get('isUpdateImage', '')
+        theme = LightBlogSpecialTheme.objects.get(id=themeId)
+        theme.special_theme = themeName
+        theme.description = description
+        if theme.special_column.id != columnId:
+            column = LightBlogSpecialColumn.objects.get(id=columnId)
+            theme.special_column = column
+        theme.save()
+        if is_updateImage == '1':
+            cover_image = request.FILES.get('cover_image', '')
+            theme.image_preview.save(str(theme.special_theme) + '.jpg', cover_image)
+        return HttpResponse(json.dumps({"success": True, "tips": "修改成功"}))
+    except Exception as e:
+        return HttpResponse(json.dumps({"success": False, "tips": str(e)}))
+
+
+# 发布专题
+@csrf_exempt
+def publish_special_theme(request):
+    try:
+        themeId = request.POST.get('themeId', '')
+        LightBlogSpecialTheme.objects.filter(id=themeId).update(isPublish=1)
+        return HttpResponse(json.dumps({"success": True, "tips": "发布成功"}))
+    except Exception as e:
+        return HttpResponse(json.dumps({"success": False, "tips": str(e)}))
+
+
+# 下架专题
+@csrf_exempt
+def down_special_theme(request):
+    try:
+        themeId = request.POST.get('themeId', '')
+        LightBlogSpecialTheme.objects.filter(id=themeId).update(isPublish=0)
+        return HttpResponse(json.dumps({"success": True, "tips": "下架成功"}))
     except Exception as e:
         return HttpResponse(json.dumps({"success": False, "tips": str(e)}))
