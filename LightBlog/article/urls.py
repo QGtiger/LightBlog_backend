@@ -2,6 +2,8 @@ from django.urls import path,re_path
 from . import views
 from . import list_views
 from . import lightblog_views
+from . import personalColumn
+from . import articleViews
 
 app_name = 'article'
 
@@ -47,6 +49,10 @@ urlpatterns = [
     path('api/detail/special_column', lightblog_views.special_column_detail),
     # 修改专栏
     path('api/update/special_column', lightblog_views.update_special_column),
+    # 发布专栏
+    path('api/publish/special_column', lightblog_views.publish_special_column),
+    # 下架专栏
+    path('api/down/special_column', lightblog_views.down_special_column),
     # 获取专题list
     path('api/get/special_theme', lightblog_views.special_theme),
     # 新增专题
@@ -61,4 +67,18 @@ urlpatterns = [
     path('api/publish/special_theme', lightblog_views.publish_special_theme),
     # 下架专题
     path('api/down/special_theme', lightblog_views.down_special_theme),
+
+    # 获取个人专栏
+    path('api/get/personal_column', personalColumn.get_column),
+    # 新增个人专栏
+    path('api/add/personal_column', personalColumn.add_column),
+    # 获取个人专栏详情
+    path('api/detail/personal_column', personalColumn.column_detail),
+    # 更新个人专栏
+    path('api/update/personal_column', personalColumn.update_column),
+    # 删除个人专栏
+    path('api/del/personal_column', personalColumn.del_column),
+
+    # 获取用户文章
+    path('api/get/articlelist', articleViews.get_articles)
 ]

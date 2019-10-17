@@ -98,6 +98,7 @@ class LightBlogSpecialColumn(models.Model):
     special_column = models.CharField(' 专栏名称 ', max_length=50)
     created = models.DateTimeField(' 创建时间 ', default=timezone.now)
     description = models.CharField(' 专栏简介 ', max_length=100)
+    isPublish = models.IntegerField(' 是否发布 ', default=0)
     image_preview = ProcessedImageField(
         upload_to=lightblog_specialcolumn,
         processors=[ResizeToFill(240, 240)],
@@ -140,6 +141,7 @@ class LightBlogPersonalColumn(models.Model):
     personal_column = models.CharField(' 个人栏目 ', max_length=20)
     created = models.DateTimeField(' 创建时间 ', default=timezone.now)
     description = models.CharField(' 栏目简介 ', max_length=100)
+    status = models.IntegerField(' 栏目显示 ', default=1)  # 是否显示在自己的页面， 1 显示 0 不显示
     image_preview = ProcessedImageField(
         upload_to=lightblog_personalcolumn,
         processors=[ResizeToFill(240, 240)],
@@ -171,7 +173,7 @@ class LightBlogArticle(models.Model):
         related_name='article_personalcolumn',
         on_delete=models.CASCADE
     )
-    article_status = models.IntegerField(default=1)
+    article_status = models.IntegerField(default=0) # 文章状态 1 待处理， 2已驳回  3 已通过 0 草稿，默认是草稿
     created = models.DateTimeField(' 创建时间 ', default=timezone.now)
     updated = models.DateTimeField(' 更新时间 ', auto_now=True)
     article_body = models.TextField(' 文章内容 ')

@@ -17,16 +17,49 @@ from django.conf import settings
 r = redis.Redis(host=settings.REDIS_HOST, port=settings.REDIS_PORT)
 
 
+# 发布专栏
+@csrf_exempt
+def publish_special_column(request):
+    try:
+        columnId = request.POST.get('columnId', '')
+        column = LightBlogSpecialColumn.objects.get(id=columnId)
+        column.isPublish = 1
+        column.save()
+        return HttpResponse(json.dumps({"success": True, "tips": '发布成功'}))
+    except Exception as e:
+        return HttpResponse(json.dumps({"success": False, "tips": str(e)}))
+
+
+# 下架 专栏
+@csrf_exempt
+def down_special_column(request):
+    try:
+        columnId = request.POST.get('columnId', '')
+        LightBlogSpecialColumn.objects.filter(id=columnId).update(isPublish=0)
+        return HttpResponse(json.dumps({"success": True, 'tips': '下架成功'}))
+    except Exception as e:
+        return HttpResponse(json.dumps({"success": False, "tips": str(e)}))
+
+
+
 # 返回专栏
+@csrf_exempt
 def special_column(request):
     try:
-        list = LightBlogSpecialColumn.objects.all()
+        columnList = LightBlogSpecialColumn.objects.all()
+        status = request.POST.get('status', '')
+        if status != '':
+            columnList = columnList.filter(isPublish=status)
         special_column_list = []
-        for i in range(len(list)):
-            special_column_list.append({"specialColumn": list[i].special_column, "id": list[i].id, 'created': time.mktime(list[i].created.timetuple()),'description': list[i].description})
-        return HttpResponse(json.dumps({"success": True, "data": special_column_list, "total":len(list)}))
+        for i in range(len(columnList)):
+            special_column_list.append({"specialColumn": columnList[i].special_column,
+                                        "id": columnList[i].id,
+                                        'created': time.mktime(columnList[i].created.timetuple()),
+                                        'description': columnList[i].description,
+                                        "status": columnList[i].isPublish})
+        return HttpResponse(json.dumps({"success": True, "data": special_column_list, "total":len(columnList)}))
     except Exception as e:
-        return HttpResponse(json.dumps({"success": False, "tips": 'somethong error'}))
+        return HttpResponse(json.dumps({"success": False, "tips": str(e)}))
 
 
 # 上传专栏
