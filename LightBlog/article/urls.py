@@ -80,5 +80,9 @@ urlpatterns = [
     path('api/del/personal_column', personalColumn.del_column),
 
     # 获取用户文章
-    path('api/get/articlelist', articleViews.get_articles)
+    path('api/get/articlelist', articleViews.get_articles),
+    # 获取专题和专栏的数据
+    path('api/get/columnTheme', articleViews.get_column_theme),
+    # 发布文章
+    path('api/publish/article', articleViews.publish_article)
 ]

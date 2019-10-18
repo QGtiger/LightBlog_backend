@@ -36,6 +36,8 @@ def get_column(request):
             columnList = columnList.filter(status=status)
         if content != '':
             columnList = columnList.filter(personal_column__icontains=content)
+        if size == '':
+            size = 100
         paginator = Paginator(columnList, size)
         try:
             current_page = paginator.page(page)

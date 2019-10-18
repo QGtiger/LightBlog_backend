@@ -185,7 +185,7 @@ class LightBlogArticle(models.Model):
         options={'quality':98},
         default='default/preview.jpg',
         verbose_name='展示图片')
-    article_descripton = models.CharField(' 文章简介 ', max_length=30)
+    article_descripton = models.CharField(' 文章简介 ', max_length=200)
     isRecommend = models.BooleanField(' 是否推荐 ', default=False)
     users_like = models.ManyToManyField(
         User, related_name="lightblog_users_like", blank=True)
