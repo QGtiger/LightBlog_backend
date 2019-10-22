@@ -90,5 +90,13 @@ urlpatterns = [
     # 编辑文章
     path('api/update/article', articleViews.update_article),
     # 上传图片
-    path('api/upload/image', articleViews.upload_articleImg)
+    path('api/upload/image', articleViews.upload_articleImg),
+    # 申请发布文章
+    path('api/apply/article',articleViews.applyShowArticle),
+    # 删除文章
+    path('api/del/article', articleViews.del_article),
+
+    # admin 文章获取
+    path('api/admin/get/articlelist', articleViews.get_all_article),
+
 ]
