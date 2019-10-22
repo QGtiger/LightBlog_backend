@@ -4,16 +4,17 @@ from django.contrib.auth.decorators import login_required
 from django.core import serializers
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
-from .models import ArticlePost, Comment,LightBlogSpecialColumn,LightBlogSpecialTheme,LightBlogPersonalColumn,LightBlogArticle
+from .models import ArticlePost, Comment,LightBlogSpecialColumn,LightBlogSpecialTheme,LightBlogPersonalColumn,LightBlogArticle, LightBlogArticleImage
 from comment.models import Comment_reply
-from django.conf import settings
 from .tasks import *
 import json
 import redis
 import re
+import os
 import time
 import jwt
 from django.conf import settings
+from django.core.files.base import ContentFile
 r = redis.Redis(host=settings.REDIS_HOST, port=settings.REDIS_PORT)
 
 # 获取用户   token = request.META.get('HTTP_AUTHORIZATION')
@@ -100,12 +101,11 @@ def get_column_theme(request):
 @csrf_exempt
 def publish_article(request):
     try:
-        title = request.POST.get('title', '1')
+        title = request.POST.get('title', '')
         description = request.POST.get('description', '')
         specialColumnId = request.POST.get('specialColumnId', '')
         specialThemeId = request.POST.get('specialThemeId', '')
         personalColumnId = request.POST.get('personalColumnId', '')
-        body = request.POST.get('body', '')
         isUpdateImg = request.POST.get('isUpdateImg', '')
         # print(title,description,specialColumnId,isUpdateImg)
         specialColumn = LightBlogSpecialColumn.objects.get(id=specialColumnId)
@@ -113,11 +113,98 @@ def publish_article(request):
         personalColumn = LightBlogPersonalColumn.objects.get(id=personalColumnId)
         token = request.META.get('HTTP_AUTHORIZATION')
         user = getUser(token)
-        article = LightBlogArticle(author=user,title=title,article_descripton=description,specialColumn=specialColumn,specialTheme=specialTheme,personalColumn=personalColumn,article_body=body)
+        article = LightBlogArticle(author=user,title=title,article_descripton=description,specialColumn=specialColumn,specialTheme=specialTheme,personalColumn=personalColumn)
         article.save()
         if isUpdateImg == '1':
             previewImg = request.FILES.get('previewImg', '')
             article.article_preview.save(str(article.title) + '.jpg', previewImg)
-        return HttpResponse(json.dumps({"success": True, 'tips':'发布成功'}))
+        return HttpResponse(json.dumps({"success": True, 'tips':'发布成功', 'data': {"id": article.id}}))
     except Exception as e:
         return HttpResponse(json.dumps({"success": False, "tips": str(e)}))
+
+
+#文章更新
+@csrf_exempt
+def update_article(request):
+    try:
+        id = request.POST.get('id', '')
+        article = LightBlogArticle.objects.get(id=id)
+        token = request.META.get('HTTP_AUTHORIZATION')
+        dict = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
+        username = dict.get('data').get('username')
+        if username != article.author.username:
+            return HttpResponse(json.dumps({"success": False, "tips": '您并没有权限修改该文章'}))
+        title = request.POST.get('title', '')
+        description = request.POST.get('description', '')
+        specialColumnId = request.POST.get('specialColumnId', '')
+        specialThemeId = request.POST.get('specialThemeId', '')
+        personalColumnId = request.POST.get('personalColumnId', '')
+        body = request.POST.get('body', '')
+        bodyHtml = request.POST.get('body_html', '')
+        isUpdateImg = request.POST.get('isUpdateImg', '')
+        specialColumn = LightBlogSpecialColumn.objects.get(id=specialColumnId)
+        specialTheme = LightBlogSpecialTheme.objects.get(id=specialThemeId)
+        personalColumn = LightBlogPersonalColumn.objects.get(id=personalColumnId)
+        LightBlogArticle.objects.filter(id=id).update(title=title,article_descripton=description,specialColumn=specialColumn,specialTheme=specialTheme,personalColumn=personalColumn,article_body=body,body_html=bodyHtml)
+        if isUpdateImg == '1':
+            previewImg = request.FILES.get('previewImg', '')
+            article.article_preview.save(str(article.title) + '.jpg', previewImg)
+        return HttpResponse(json.dumps({"success": True, 'tips': '修改成功'}))
+    except Exception as e:
+        return HttpResponse(json.dumps({"success": False, 'tips': str(e)}))
+
+
+
+# 文章编辑
+@csrf_exempt
+def detail_article(request):
+    try:
+        id = request.POST.get('id', '')
+        article = LightBlogArticle.objects.get(id=id)
+        detailArticle = {
+            "title": article.title,
+            "description": article.article_descripton,
+            "previewImg": [{"url":article.article_preview.url}],
+            "columnId": article.specialColumn.id,
+            "themeId": article.specialTheme.id,
+            "personalColumnId": article.personalColumn.id,
+            "body": article.article_body
+        }
+        return HttpResponse(json.dumps({"success": True, "data": detailArticle, "tips": "OK"}))
+    except Exception as e:
+        return  HttpResponse(json.dumps({"success": False, "tips": str(e)}))
+
+from PIL import Image
+
+# 文章图片上传
+@csrf_exempt
+def upload_articleImg(request):
+    try:
+        id = request.POST.get('id', '')
+        uploadImage = request.FILES.get('image', '')
+        uploadImageName = request.POST.get('imageName', '')
+        article = LightBlogArticle.objects.get(id=id)
+        articleImg = LightBlogArticleImage(article=article)
+        articleImg.image.save(uploadImageName, uploadImage)
+        # imgPath = os.path.join(settings.BASE_DIR,'media','\\'.join(str(articleImg.image).split('/')))
+        # print(imgPath)
+        image = Image.open(uploadImage)
+        width = image.width
+        height = image.height
+        rate = 1.0 # 压缩率
+        # 根据图像大小设置压缩率
+        if width >= 2000 or height >= 2000:
+            rate = 0.3
+        elif width >= 1000 or height >= 1000:
+            rate = 0.5
+        elif width >= 500 or height >= 500:
+            rate = 0.7
+        width = int(width * rate)  # 新的宽
+        height = int(height * rate)  # 新的高
+        image.thumbnail((width, height), Image.ANTIALIAS)  # 生成缩略图
+        image.save(settings.MEDIA_ROOT+'/LightBlogArticleImagesCompress/'+id+ '/'+str(uploadImageName), 'JPEG')
+        articleImg.imageCompress = 'LightBlogArticleImagesCompress/'+id+ '/'+str(uploadImageName)
+        articleImg.save()
+        return HttpResponse(json.dumps({"success": True, 'tips': "ok", "data":{"image": articleImg.image.url, "imageCompress": articleImg.imageCompress.url}}))
+    except Exception as e:
+        return HttpResponse(json.dumps({"success": False, 'tips': str(e)}))

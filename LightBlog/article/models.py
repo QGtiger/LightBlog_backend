@@ -31,8 +31,16 @@ def article_img_path(instance, filename):
     return os.path.join('previewBlog', str(instance.author.id), filename)
 
 
-def lightblog_articleimgs(instance, filename):
+def lightblog_articleimgs(instance, filename): # 文章内图片
     return os.path.join('LightBlogArticleImages', str(instance.article.id), filename)
+
+
+def lightblog_articleimgscompress(instance, filename): #文章内压缩 图片
+    return os.path.join('LightBlogArticleImagesCompress', str(instance.article.id), filename)
+
+
+def lightblog_articleimgspreview(instance, filename): #文章内压缩 图片
+    return os.path.join('LightBlogArticleImagesPreview', str(instance.article.id), filename)
 
 
 def lightblog_specialcolumn(instance, filename):
@@ -107,6 +115,9 @@ class LightBlogSpecialColumn(models.Model):
         default='default/preview.jpg',
         verbose_name='展示图片')
 
+    class Meta:
+        ordering = ("-created",)
+
 
 class LightBlogSpecialTheme(models.Model):
     create_user = models.ForeignKey(
@@ -131,6 +142,9 @@ class LightBlogSpecialTheme(models.Model):
         default='default/preview.jpg',
         verbose_name='展示图片')
 
+    class Meta:
+        ordering = ("-created",)
+
 
 class LightBlogPersonalColumn(models.Model):
     create_user = models.ForeignKey(
@@ -149,6 +163,9 @@ class LightBlogPersonalColumn(models.Model):
         options={'quality':98},
         default='default/preview.jpg',
         verbose_name='展示图片')
+
+    class Meta:
+        ordering = ("-created",)
 
 
 class LightBlogArticle(models.Model):
@@ -177,10 +194,11 @@ class LightBlogArticle(models.Model):
     created = models.DateTimeField(' 创建时间 ', default=timezone.now)
     updated = models.DateTimeField(' 更新时间 ', auto_now=True)
     article_body = models.TextField(' 文章内容 ')
+    body_html = models.TextField(' Html 内容 ', default=" 默认 ")
     article_wordCount = models.IntegerField(' 文章字数 ', default=233)
     article_preview = ProcessedImageField(
         upload_to=lightblog_articlepreview,
-        processors=[ResizeToFill(320, 260)],
+        processors=[ResizeToFill(320, 320)],
         format='JPEG',
         options={'quality':98},
         default='default/preview.jpg',
@@ -192,6 +210,9 @@ class LightBlogArticle(models.Model):
     users_dislike = models.ManyToManyField(
         User, related_name="lightblog_users_dislike", blank=True)
 
+    class Meta:
+        ordering = ("-updated",)
+
 
 
 
@@ -201,13 +222,8 @@ class LightBlogArticleImage(models.Model):
         on_delete=models.CASCADE,
         related_name="lightblog_articleimage"
     )
-    image_preview = ProcessedImageField(
-        upload_to=lightblog_articleimgs,
-        processors=[ResizeToFill(640, 480)],
-        format='JPEG',
-        options={'quality':98},
-        verbose_name='上传图片')
-
+    image = models.ImageField(upload_to=lightblog_articleimgs, blank=True, null=True)
+    imageCompress = models.ImageField(upload_to=lightblog_articleimgscompress, blank=True, null=True)
 
 class Comment(models.Model):
     article = models.ForeignKey(

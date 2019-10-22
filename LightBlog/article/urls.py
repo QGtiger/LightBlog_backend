@@ -84,5 +84,11 @@ urlpatterns = [
     # 获取专题和专栏的数据
     path('api/get/columnTheme', articleViews.get_column_theme),
     # 发布文章
-    path('api/publish/article', articleViews.publish_article)
+    path('api/publish/article', articleViews.publish_article),
+    # 获取文章详情编辑
+    path('api/detail/article', articleViews.detail_article),
+    # 编辑文章
+    path('api/update/article', articleViews.update_article),
+    # 上传图片
+    path('api/upload/image', articleViews.upload_articleImg)
 ]
