@@ -225,6 +225,14 @@ class LightBlogArticleImage(models.Model):
     image = models.ImageField(upload_to=lightblog_articleimgs, blank=True, null=True)
     imageCompress = models.ImageField(upload_to=lightblog_articleimgscompress, blank=True, null=True)
 
+
+# 文章审核回复模板
+class LightBlogReplyTemplate(models.Model):
+    title = models.CharField(' 回复模板标题 ', max_length=50)
+    content = models.CharField(' 回复模板内容 ', max_length=500)
+
+
+
 class Comment(models.Model):
     article = models.ForeignKey(
         ArticlePost,

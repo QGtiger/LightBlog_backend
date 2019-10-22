@@ -26,20 +26,29 @@ def getUser(token):
     return user
 
 
+def isSuperUser(request):
+    token = request.META.get('HTTP_AUTHORIZATION')
+    dict = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
+    username = dict.get('data').get('username')
+    user = User.objects.get(username=username)
+    if not user.is_superuser:
+        return HttpResponse(json.dumps({"success": False, 'tips': "您没有权限"}))
+
+
 # 验证修饰符
-def checkUser(func):
-    def check(request):
-        token = request.META.get('HTTP_AUTHORIZATION')
-        dict = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
-        username = dict.get('data').get('username')
-        user = User.objects.get(username=username)
-        id = request.POST.get(id, '')
-        article = LightBlogArticle.objects.get(id=id)
-        if user != article.author:
-            return HttpResponse(json.dumps({"success":False,"tips":"您并没有权限"}))
-        else:
-            return func(request)
-    return check
+# def checkUser(func):
+#     def check(request):
+#         token = request.META.get('HTTP_AUTHORIZATION')
+#         dict = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
+#         username = dict.get('data').get('username')
+#         user = User.objects.get(username=username)
+#         id = request.POST.get(id, '')
+#         article = LightBlogArticle.objects.get(id=id)
+#         if user != article.author:
+#             return HttpResponse(json.dumps({"success":False,"tips":"您并没有权限"}))
+#         else:
+#             return func(request)
+#     return check
 
 
 # 获取用户文章
