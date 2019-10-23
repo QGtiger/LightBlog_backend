@@ -26,6 +26,11 @@ def getUser(token):
     return user
 
 
+def nullParam():
+    return HttpResponse(json.dumps({"success": False, 'tips': "参数不能为空"}))
+
+
+
 def isSuperUser(request):
     token = request.META.get('HTTP_AUTHORIZATION')
     dict = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
@@ -34,6 +39,21 @@ def isSuperUser(request):
     if not user.is_superuser:
         return HttpResponse(json.dumps({"success": False, 'tips': "您没有权限"}))
 
+
+def init_blog(content):
+    content_text1 = content.replace(
+        '<p>',
+        '').replace(
+        '</p>',
+        '').replace(
+            "'",
+        '')
+    # 去掉图片链接
+    content_text2 = re.sub(r'(!\[.*?\]\(.*?\))', '', content_text1)
+    # 去掉markdown标签
+    pattern = r'[\\\`\*\_\[\]\#\+\-\!\>]'
+    content_text3 = re.sub(pattern, '', content_text2)
+    return content_text3
 
 # 验证修饰符
 # def checkUser(func):
@@ -87,11 +107,13 @@ def get_articles(request):
                              "personalColumn": list[i].personalColumn.personal_column,
                              "created": time.mktime(list[i].created.timetuple()),
                              "updated": time.mktime(list[i].updated.timetuple()),
+                             "checked": time.mktime(list[i].checkTime.timetuple()) if list[i].checkTime else '',
                              "isRecommend": list[i].isRecommend,
                              "usersLike": list[i].users_like.count(),
                              "usersDisLike": list[i].users_dislike.count(),
                              "scanCount": view_count,
-                                "status": list[i].article_status})
+                             "status": list[i].article_status,
+                             "wordCount": list[i].article_wordCount})
         return HttpResponse(json.dumps({"success": True, "data": articles, "total": len(articleList)}))
     except Exception as e:
         return HttpResponse(json.dumps({"success": False, 'tips': str(e)}))
@@ -139,7 +161,7 @@ def publish_article(request):
         personalColumn = LightBlogPersonalColumn.objects.get(id=personalColumnId)
         token = request.META.get('HTTP_AUTHORIZATION')
         user = getUser(token)
-        article = LightBlogArticle(author=user,title=title,article_descripton=description,specialColumn=specialColumn,specialTheme=specialTheme,personalColumn=personalColumn)
+        article = LightBlogArticle(author=user,title=title,article_descripton=description,specialColumn=specialColumn,specialTheme=specialTheme,personalColumn=personalColumn,)
         article.save()
         if isUpdateImg == '1':
             previewImg = request.FILES.get('previewImg', '')
@@ -171,7 +193,7 @@ def update_article(request):
         specialColumn = LightBlogSpecialColumn.objects.get(id=specialColumnId)
         specialTheme = LightBlogSpecialTheme.objects.get(id=specialThemeId)
         personalColumn = LightBlogPersonalColumn.objects.get(id=personalColumnId)
-        LightBlogArticle.objects.filter(id=id).update(title=title,article_descripton=description,specialColumn=specialColumn,specialTheme=specialTheme,personalColumn=personalColumn,article_body=body,body_html=bodyHtml)
+        LightBlogArticle.objects.filter(id=id).update(title=title,article_descripton=description,specialColumn=specialColumn,specialTheme=specialTheme,personalColumn=personalColumn,article_body=body,body_html=bodyHtml,article_wordCount=len(init_blog(body)))
         if isUpdateImg == '1':
             previewImg = request.FILES.get('previewImg', '')
             article.article_preview.save(str(article.title) + '.jpg', previewImg)
@@ -197,7 +219,10 @@ def detail_article(request):
             "themeName": article.specialTheme.special_theme,
             "personalColumnId": article.personalColumn.id,
             "body": article.article_body,
-            "bodyHtml": article.body_html
+            "bodyHtml": article.body_html,
+            "status": article.article_status,
+            "created": time.mktime(article.created.timetuple()),
+             "updated": time.mktime(article.updated.timetuple()),
         }
         return HttpResponse(json.dumps({"success": True, "data": detailArticle, "tips": "OK"}))
     except Exception as e:
@@ -325,12 +350,52 @@ def get_all_article(request):
                              "personalColumn": list[i].personalColumn.personal_column,
                              "created": time.mktime(list[i].created.timetuple()),
                              "updated": time.mktime(list[i].updated.timetuple()),
+                             "checked": time.mktime(list[i].checkTime.timetuple()) if list[i].checkTime else '',
                              "isRecommend": list[i].isRecommend,
                              "usersLike": list[i].users_like.count(),
                              "usersDisLike": list[i].users_dislike.count(),
                              "scanCount": view_count,
                              "author": list[i].author.username,
-                                "status": list[i].article_status})
+                                "status": list[i].article_status,
+                             "wordCount": list[i].article_wordCount})
         return HttpResponse(json.dumps({"success": True, "data": articles, "total": len(articleList)}))
     except Exception as e:
         return HttpResponse(json.dumps({"success": False, 'tips': str(e)}))
+
+
+# 审核文章
+@csrf_exempt
+def check_article(request):
+    try:
+        isSuperUser(request)
+        id = request.POST.get('id', nullParam())
+        status = request.POST.get('status', nullParam())
+        content = request.POST.get('content', nullParam())
+        isRecommend = request.POST.get('isRecommend', '')
+        if isRecommend == 'true':
+            isRecommend = True
+        else:
+            isRecommend = False
+        LightBlogArticle.objects.filter(id=id).update(checkText=content, checkTime=datetime.datetime.now(),article_status=status,isRecommend=isRecommend)
+        return HttpResponse(json.dumps({"success":True, "tips": "ok"}))
+    except Exception as e:
+        return HttpResponse(json.dumps({"success": False, "tips": str(e)}))
+
+
+# 获取审核文章内容
+@csrf_exempt
+def get_resultCheck(request):
+    try:
+        isSuperUser(request)
+        id=request.POST.get('id', nullParam())
+        article = LightBlogArticle.objects.get(id=id)
+        return HttpResponse(json.dumps({"success":True,"data":{
+            "title": article.title,
+            "content": article.checkText,
+            "isRecommend": article.isRecommend,
+            "status": article.article_status,
+            "description": article.article_descripton
+        }, "tips": "ok"}))
+    except Exception as e:
+        return HttpResponse(json.dumps({"success": False, "tips": str(e)}))
+

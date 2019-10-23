@@ -5,6 +5,7 @@ from . import lightblog_views
 from . import personalColumn
 from . import articleViews
 from . import replayTemplate
+from . import homePage
 
 app_name = 'article'
 
@@ -99,6 +100,10 @@ urlpatterns = [
 
     # admin 文章获取
     path('api/admin/get/articlelist', articleViews.get_all_article),
+    # 审核文章
+    path('api/check/article', articleViews.check_article),
+    # 获取审核文章内容
+    path('api/get/articlecheck', articleViews.get_resultCheck),
 
 
     # 新增回复模板
@@ -110,5 +115,8 @@ urlpatterns = [
     # 更新模板
     path('api/update/replay/template', replayTemplate.update_template),
     # 删除模板
-    path('api/del/replay/template', replayTemplate.del_template)
+    path('api/del/replay/template', replayTemplate.del_template),
+
+    # 获取首页article
+    path('api/get/home/articles', homePage.get_articles),
 ]

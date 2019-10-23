@@ -42,7 +42,7 @@ def get_template(request):
     try:
         isSuperUser(request)
         page = request.GET.get('page', 1)
-        size = request.GET.get('size', 10)
+        size = request.GET.get('size', 1000)
         templateListAll = LightBlogReplyTemplate.objects.all()
         paginator = Paginator(templateListAll, size)
         try:

@@ -191,6 +191,8 @@ class LightBlogArticle(models.Model):
         on_delete=models.CASCADE
     )
     article_status = models.IntegerField(default=0) # 文章状态 1 待处理， 2已驳回  3 已通过 0 草稿，默认是草稿
+    checkTime = models.DateTimeField(' 审核时间 ', null=True, blank=True)
+    checkText = models.CharField(' 审核内容 ', max_length=300, default="")
     created = models.DateTimeField(' 创建时间 ', default=timezone.now)
     updated = models.DateTimeField(' 更新时间 ', auto_now=True)
     article_body = models.TextField(' 文章内容 ')
@@ -230,6 +232,8 @@ class LightBlogArticleImage(models.Model):
 class LightBlogReplyTemplate(models.Model):
     title = models.CharField(' 回复模板标题 ', max_length=50)
     content = models.CharField(' 回复模板内容 ', max_length=500)
+
+
 
 
 
