@@ -35,7 +35,9 @@ def publish_special_column(request):
 def down_special_column(request):
     try:
         columnId = request.POST.get('columnId', '')
+        column = LightBlogSpecialColumn.objects.get(id=columnId)
         LightBlogSpecialColumn.objects.filter(id=columnId).update(isPublish=0)
+        LightBlogSpecialTheme.objects.filter(special_column=column).update(isPublish=0)
         return HttpResponse(json.dumps({"success": True, 'tips': '下架成功'}))
     except Exception as e:
         return HttpResponse(json.dumps({"success": False, "tips": str(e)}))
