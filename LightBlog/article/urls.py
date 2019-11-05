@@ -6,6 +6,7 @@ from . import personalColumn
 from . import articleViews
 from . import replayTemplate
 from . import homePage
+from . import blogViews
 
 app_name = 'article'
 
@@ -119,4 +120,6 @@ urlpatterns = [
 
     # 获取首页article
     path('api/get/home/articles', homePage.get_articles),
+    # 获取博客detail
+    path('api/detail/blog', blogViews.blog_detail)
 ]
