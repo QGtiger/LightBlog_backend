@@ -39,33 +39,59 @@ def isSuperUser(request):
         return HttpResponse(json.dumps({"success": False, 'tips': "您没有权限"}))
 
 
+# 文章阅读数排序
+def most_views():
+    length = r.zcard('lightblog_ranking')
+    article_ranking = r.zrange("lightblog_ranking", 0, length, desc=True)[:5]
+    article_ranking_ids = [int(id) for id in article_ranking]
+    most_viewed = list(ArticlePost.objects.filter(id__in=article_ranking_ids))
+    most_viewed.sort(key=lambda x: article_ranking_ids.index(x.id))
+
+
 @csrf_exempt
 def blog_detail(request):
     try:
         id = request.POST.get('id', nullParam())
         blog = LightBlogArticle.objects.get(id=id)
-        view = r.get('lightblog:{}:views'.format(id))
+        view = r.incr('lightblog:{}:views'.format(id))
+        r.zincrby('lightblog_ranking', 1, id)    #view.decode('utf-8')
+        recommendBlogs = blog.author.lightblog_article.filter(isRecommend=True)[:2]
+        recommendBlogsList = []
+        for i in range(len(recommendBlogs)):
+            viewCount = r.get('lightblog:{}:views'.format(recommendBlogs[i].id))
+            recommendBlogsList.append({
+                "title": recommendBlogs[i].title,
+                "updated": time.mktime(recommendBlogs[i].updated.timetuple()),
+                "usersLike": recommendBlogs[i].users_like.count(),
+                "scanCount": 0 if viewCount is None else viewCount.decode('utf-8'),
+                "id": recommendBlogs[i].id
+            })
         if view is None:
             view_count = 0
         else:
-            view_count = view.decode('utf-8')
+            view_count = view
         data = {"id": blog.id,
-                         "title": blog.title,
-                         "description": blog.article_descripton,
-                         "specialColumn": blog.specialColumn.special_column,
-                         "specialColumnId":blog.specialColumn.id,
-                         "specialTheme": blog.specialTheme.special_theme,
-                         "specialThemeId": blog.specialTheme.id,
-                         "created": time.mktime(blog.created.timetuple()),
-                         "updated": time.mktime(blog.updated.timetuple()),
-                         "isRecommend": blog.isRecommend,
-                         "usersLike": blog.users_like.count(),
-                         "usersDisLike": blog.users_dislike.count(),
-                         "scanCount": view_count,
-                         "author": blog.author.username,
-                            "status": blog.article_status,
-                         "wordCount": blog.article_wordCount,
-                        "body": blog.article_body,}
+                 "title": blog.title,
+                 "description": blog.article_descripton,
+                 "specialColumn": blog.specialColumn.special_column,
+                 "specialColumnId":blog.specialColumn.id,
+                 "specialTheme": blog.specialTheme.special_theme,
+                 "specialThemeId": blog.specialTheme.id,
+                 "created": time.mktime(blog.created.timetuple()),
+                 "updated": time.mktime(blog.updated.timetuple()),
+                 "isRecommend": blog.isRecommend,
+                 "usersLike": blog.users_like.count(),
+                 "usersDisLike": blog.users_dislike.count(),
+                 "scanCount": view_count,
+                 "author": blog.author.username,
+                "author_url": blog.author.userinfo.photo_150x150.url,
+                "author_blogsCount": blog.author.lightblog_article.filter(isRecommend=True).count(),
+                "author_recommendBlogsList": recommendBlogsList,
+                    "status": blog.article_status,
+                 "wordCount": blog.article_wordCount,
+                "body": blog.article_body,}
         return HttpResponse(json.dumps({"success": True, "data":data, "tips": 'ok'}))
     except Exception as e:
         return HttpResponse(json.dumps({"success": False, 'tips': str(e)}))
+
+
