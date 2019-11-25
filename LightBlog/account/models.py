@@ -3,7 +3,11 @@ from django.contrib.auth.models import User
 from imagekit.models import ImageSpecField
 from imagekit.processors import ResizeToFill
 from imagekit.models import ProcessedImageField
+import os
 
+
+def lightblog_authorbg(instance, filename):
+    return os.path.join('avator', str(instance.user.id), filename)
 
 # Create your models here.
 class UserInfo(models.Model):
@@ -18,11 +22,18 @@ class UserInfo(models.Model):
     address = models.CharField(' 地址 ', max_length=100, blank=True)
     aboutme = models.TextField(' 自我介绍 ', blank=True)
     photo = ProcessedImageField(
-        upload_to='avator',
+        upload_to=lightblog_authorbg,
         processors=[ResizeToFill(400, 400)],
         format='JPEG',
         options={'quality':98},
         default='default/default.jpg',
+        verbose_name='展示图片')
+    user_bg = ProcessedImageField(
+        upload_to=lightblog_authorbg,
+        processors=[ResizeToFill(800, 300)],
+        format='JPEG',
+        options={'quality':98},
+        default='default/author-bg.jpg',
         verbose_name='展示图片')
 
     # 注意：ImageSpecField不会生成数据库中的表

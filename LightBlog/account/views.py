@@ -120,7 +120,9 @@ def account_islogin(request):
     token = request.META.get('HTTP_AUTHORIZATION')
     dict = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
     username = dict.get('data').get('username')
-    return HttpResponse(json.dumps({'success': True, 'tips': '登录用户 '+username, 'username': username,"success": True}))
+    user = User.objects.get(username=username)
+    userinfo = UserInfo.objects.get(user=user)
+    return HttpResponse(json.dumps({'success': True, 'tips': '登录用户 '+username, 'username': username,"success": True, "avator": userinfo.photo.url}))
 
 
 @csrf_exempt

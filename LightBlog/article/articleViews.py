@@ -272,7 +272,7 @@ def upload_articleImg(request):
         image.thumbnail((width, height), Image.ANTIALIAS)  # 生成缩略图
         if not os.path.exists(settings.MEDIA_ROOT+'/LightBlogArticleImagesCompress/'+id):
             os.mkdir(settings.MEDIA_ROOT+'/LightBlogArticleImagesCompress/'+id)
-        image.save(settings.MEDIA_ROOT+'/LightBlogArticleImagesCompress/'+id+ '/'+str(uploadImageName), 'JPEG')
+        image.save(settings.MEDIA_ROOT+'/LightBlogArticleImagesCompress/'+id+ '/'+str(uploadImageName))
         articleImg.imageCompress = 'LightBlogArticleImagesCompress/'+id+ '/'+str(uploadImageName)
         articleImg.save()
         return HttpResponse(json.dumps({"success": True, 'tips': "ok", "data":{"image": articleImg.image.url, "imageCompress": articleImg.imageCompress.url}}))
@@ -375,6 +375,8 @@ def check_article(request):
         if isRecommend == 'true':
             isRecommend = True
         else:
+            isRecommend = False
+        if status == 2:
             isRecommend = False
         LightBlogArticle.objects.filter(id=id).update(checkText=content, checkTime=datetime.datetime.now(),article_status=status,isRecommend=isRecommend)
         return HttpResponse(json.dumps({"success":True, "tips": "ok"}))

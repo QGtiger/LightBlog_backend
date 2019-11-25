@@ -41,7 +41,7 @@ def get_articles(request):
     try:
         page = request.GET.get('page', 1)
         size = request.GET.get('size', 10)
-        articleList = LightBlogArticle.objects.filter(isRecommend=True).filter(article_status=3)
+        articleList = LightBlogArticle.objects.filter(isRecommend=True).filter(article_status=3).order_by('-checkTime')
         paginator = Paginator(articleList, size)
         try:
             current_page = paginator.page(page)
@@ -78,6 +78,6 @@ def get_articles(request):
                              'blog_img_url': list[i].article_preview.url,
                              'author_img_url': list[i].author.userinfo.photo_150x150.url,
                              'author': list[i].author.username})
-        return HttpResponse(json.dumps({"success": True, "data": articles, "total": len(articleList)}))
+        return HttpResponse(json.dumps({"success": True, "data": articles, "total": len(articleList), "totalPage": paginator.num_pages}))
     except Exception as e:
         return HttpResponse(json.dumps({"success": False, "tips": str(e)}))

@@ -55,7 +55,7 @@ def blog_detail(request):
         blog = LightBlogArticle.objects.get(id=id)
         view = r.incr('lightblog:{}:views'.format(id))
         r.zincrby('lightblog_ranking', 1, id)    #view.decode('utf-8')
-        recommendBlogs = blog.author.lightblog_article.filter(isRecommend=True)[:2]
+        recommendBlogs = blog.author.lightblog_article.filter(isRecommend=True)[:3]
         recommendBlogsList = []
         for i in range(len(recommendBlogs)):
             viewCount = r.get('lightblog:{}:views'.format(recommendBlogs[i].id))
