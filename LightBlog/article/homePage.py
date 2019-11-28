@@ -5,8 +5,7 @@ from django.core import serializers
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from .models import ArticlePost, Comment,LightBlogSpecialColumn,LightBlogSpecialTheme,LightBlogPersonalColumn,LightBlogArticle, LightBlogArticleImage
-from comment.models import Comment_reply
-from .tasks import *
+from django.db.models import Q
 import json
 import redis
 import re
@@ -79,5 +78,64 @@ def get_articles(request):
                              'author_img_url': list[i].author.userinfo.photo_150x150.url,
                              'author': list[i].author.username})
         return HttpResponse(json.dumps({"success": True, "data": articles, "total": len(articleList), "totalPage": paginator.num_pages}))
+    except Exception as e:
+        return HttpResponse(json.dumps({"success": False, "tips": str(e)}))
+
+
+# 文章阅读数排序
+@csrf_exempt
+def most_views(request):
+    try:
+        length = r.zcard('lightblog_ranking')
+        article_ranking = r.zrange("lightblog_ranking", 0, length, desc=True)[:5]
+        article_ranking_ids = [int(id) for id in article_ranking]
+        most_viewed = list(LightBlogArticle.objects.filter(id__in=article_ranking_ids))
+        most_viewed.sort(key=lambda x: article_ranking_ids.index(x.id))
+        articles = []
+        for i in range(len(most_viewed)):
+            view = r.get('lightblog:{}:views'.format(most_viewed[i].id))
+            if view is None:
+                view_count = 0
+            else:
+                view_count = view.decode('utf-8')
+            articles.append({"id": most_viewed[i].id,
+                             "title": most_viewed[i].title,
+                             "description": most_viewed[i].article_descripton,
+                             "specialColumn": most_viewed[i].specialColumn.special_column,
+                             "specialColumnId": most_viewed[i].specialColumn.id,
+                             "specialTheme": most_viewed[i].specialTheme.special_theme,
+                             "specialThemeId": most_viewed[i].specialTheme.id,
+                             "created": time.mktime(most_viewed[i].created.timetuple()),
+                             "updated": time.mktime(most_viewed[i].updated.timetuple()),
+                             "checked": time.mktime(most_viewed[i].checkTime.timetuple()) if most_viewed[i].checkTime else '',
+                             "usersLike": most_viewed[i].users_like.count(),
+                             "usersDisLike": most_viewed[i].users_dislike.count(),
+                             "scanCount": view_count,
+                             "wordCount": most_viewed[i].article_wordCount,
+                             "body": init_blog(most_viewed[i].article_body)[:100],
+                             'blog_img_url': most_viewed[i].article_preview.url,
+                             'author_img_url': most_viewed[i].author.userinfo.photo_150x150.url,
+                             'author': most_viewed[i].author.username})
+        return HttpResponse(
+            json.dumps({"success": True, "data": articles}))
+    except Exception as e:
+        return HttpResponse(json.dumps({"success": False, "tips": str(e)}))
+
+
+
+# 返回专栏数据
+@csrf_exempt
+def get_special_column(request):
+    try:
+        specialColumnList = LightBlogSpecialColumn.objects.filter(Q(isPublish=1)&Q(isRecommend=True))
+        list = []
+        for i in range(len(specialColumnList)):
+            list.append({
+                "id": specialColumnList[i].id,
+                "specialColumnName": specialColumnList[i].special_column,
+                "description": specialColumnList[i].description,
+                "image_preview": specialColumnList[i].image_preview.url
+            })
+        return HttpResponse(json.dumps({"success": True, "data": list}))
     except Exception as e:
         return HttpResponse(json.dumps({"success": False, "tips": str(e)}))

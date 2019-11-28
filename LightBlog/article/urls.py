@@ -70,6 +70,8 @@ urlpatterns = [
     path('api/publish/special_theme', lightblog_views.publish_special_theme),
     # 下架专题
     path('api/down/special_theme', lightblog_views.down_special_theme),
+    # 推荐或者不推荐专栏\
+    path('api/recommend/special_column', lightblog_views.recommend_special_column),
 
     # 获取个人专栏
     path('api/get/personal_column', personalColumn.get_column),
@@ -121,5 +123,12 @@ urlpatterns = [
     # 获取首页article
     path('api/get/home/articles', homePage.get_articles),
     # 获取博客detail
-    path('api/detail/blog', blogViews.blog_detail)
+    path('api/detail/blog', blogViews.blog_detail),
+    # 获取阅读量前五的文章
+    path(r'api/get/most/views', homePage.most_views),
+    # 获取首页的专栏信息
+    path('api/get/home/special/column', homePage.get_special_column),
+
+    # 新增banner
+    path('api/add/banner', lightblog_views.add_banner),
 ]

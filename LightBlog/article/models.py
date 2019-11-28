@@ -58,6 +58,10 @@ def lightblog_articlepreview(instance, filename):
     return os.path.join('LightBlogArticlePreview', str(instance.id), filename)
 
 
+def lightblog_banner(instance, filename):
+    return os.path.join('LightBlogBanner', str(instance.id), filename)
+
+
 class ArticlePost(models.Model):
     author = models.ForeignKey(
         User,
@@ -107,6 +111,7 @@ class LightBlogSpecialColumn(models.Model):
     created = models.DateTimeField(' 创建时间 ', default=timezone.now)
     description = models.CharField(' 专栏简介 ', max_length=100)
     isPublish = models.IntegerField(' 是否发布 ', default=0)
+    isRecommend = models.BooleanField(' 是否推荐 ', default=False)
     image_preview = ProcessedImageField(
         upload_to=lightblog_specialcolumn,
         processors=[ResizeToFill(240, 240)],
@@ -233,6 +238,15 @@ class LightBlogReplyTemplate(models.Model):
     title = models.CharField(' 回复模板标题 ', max_length=50)
     content = models.CharField(' 回复模板内容 ', max_length=500)
 
+
+# Banner Model
+class LightBlogBanner(models.Model):
+    title = models.CharField(' banner 标题 ', max_length=50)
+    desc = models.CharField(' banner 介绍 ', max_length=200)
+    url = models.CharField(' banner Url ', max_length=300)
+    image =  models.ImageField(
+        upload_to=lightblog_banner,
+        default='default/author-bg.jpg')
 
 
 

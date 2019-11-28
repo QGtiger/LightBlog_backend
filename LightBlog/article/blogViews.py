@@ -25,6 +25,20 @@ def getUser(token):
     user = User.objects.get(username=username)
     return user
 
+def init_blog(content):
+    content_text1 = content.replace(
+        '<p>',
+        '').replace(
+        '</p>',
+        '').replace(
+            "'",
+        '')
+    # 去掉图片链接
+    content_text2 = re.sub(r'(!\[.*?\]\(.*?\))', '', content_text1)
+    # 去掉markdown标签
+    pattern = r'[\\\`\*\_\[\]\#\+\-\!\>]'
+    content_text3 = re.sub(pattern, '', content_text2)
+    return content_text3
 
 def nullParam():
     return HttpResponse(json.dumps({"success": False, 'tips': "参数不能为空"}))
@@ -39,14 +53,6 @@ def isSuperUser(request):
         return HttpResponse(json.dumps({"success": False, 'tips': "您没有权限"}))
 
 
-# 文章阅读数排序
-def most_views():
-    length = r.zcard('lightblog_ranking')
-    article_ranking = r.zrange("lightblog_ranking", 0, length, desc=True)[:5]
-    article_ranking_ids = [int(id) for id in article_ranking]
-    most_viewed = list(ArticlePost.objects.filter(id__in=article_ranking_ids))
-    most_viewed.sort(key=lambda x: article_ranking_ids.index(x.id))
-
 
 @csrf_exempt
 def blog_detail(request):
@@ -55,7 +61,8 @@ def blog_detail(request):
         blog = LightBlogArticle.objects.get(id=id)
         view = r.incr('lightblog:{}:views'.format(id))
         r.zincrby('lightblog_ranking', 1, id)    #view.decode('utf-8')
-        recommendBlogs = blog.author.lightblog_article.filter(isRecommend=True)[:3]
+        recommendBlogs = list(blog.author.lightblog_article.filter(isRecommend=True))[:3]
+
         recommendBlogsList = []
         for i in range(len(recommendBlogs)):
             viewCount = r.get('lightblog:{}:views'.format(recommendBlogs[i].id))
@@ -93,5 +100,4 @@ def blog_detail(request):
         return HttpResponse(json.dumps({"success": True, "data":data, "tips": 'ok'}))
     except Exception as e:
         return HttpResponse(json.dumps({"success": False, 'tips': str(e)}))
-
 

@@ -134,10 +134,10 @@ def get_column_theme(request):
             })
             themeList = columnList[i].lightblog_specialcolumn.all().filter(isPublish=1)
             data = []
-            for i in range(len(themeList)):
+            for j in range(len(themeList)):
                 data.append({
-                    "id": themeList[i].id,
-                    "themeName": themeList[i].special_theme
+                    "id": themeList[j].id,
+                    "themeName": themeList[j].special_theme
                 })
             themeData[columnList[i].id] = data
         return HttpResponse(json.dumps({"success": True, "data": {"columnList": columnData, "themeList": themeData}}))
