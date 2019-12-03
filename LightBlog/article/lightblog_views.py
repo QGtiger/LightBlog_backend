@@ -14,6 +14,7 @@ import re
 import time
 import jwt
 from django.conf import settings
+from .utils import is_superuser, log_in
 r = redis.Redis(host=settings.REDIS_HOST, port=settings.REDIS_PORT)
 
 def nullParam():
@@ -318,5 +319,41 @@ def add_banner(request):
         banner.save()
         banner.image.save(title+'.jpg', image)
         return HttpResponse(json.dumps({"success": True, "tips":"ok"}))
+    except Exception as e:
+        return HttpResponse(json.dumps({"success": False, "tips": str(e)}))
+
+
+# 获取banner list信息
+
+@is_superuser
+def get_banner(request):
+    try:
+        banners = LightBlogBanner.objects.all()
+        list = []
+        for i in range(len(banners)):
+            list.append({
+                'id': banners[i].id,
+                'title': banners[i].title,
+                'desc': banners[i].desc,
+                'url': banners[i].url,
+                'image': banners[i].image.url
+            })
+        return HttpResponse(json.dumps({"success": True, "list": list}))
+    except Exception as e:
+        return HttpResponse(json.dumps({"success": True, "tips": str(e)}))
+
+
+def banner_detail(request):
+    try:
+        id = request.POST.get('id', nullParam())
+        banner = LightBlogBanner.objects.get(id=id)
+        detail = {
+            "id": id,
+            "title": banner.title,
+            "desc": banner.desc,
+            "url": banner.url,
+            "image": banner.image.url
+        }
+        return HttpResponse(json.dumps({"success": True, "data": detail}))
     except Exception as e:
         return HttpResponse(json.dumps({"success": False, "tips": str(e)}))

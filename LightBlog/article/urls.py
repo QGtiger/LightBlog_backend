@@ -131,4 +131,8 @@ urlpatterns = [
 
     # 新增banner
     path('api/add/banner', lightblog_views.add_banner),
+    # 获取banner
+    path('api/get/banner', lightblog_views.get_banner),
+    # 获取banner detail
+    path('api/detail/banner', lightblog_views.banner_detail)
 ]
