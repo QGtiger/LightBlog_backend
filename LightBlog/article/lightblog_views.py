@@ -18,7 +18,7 @@ from .utils import is_superuser, log_in
 r = redis.Redis(host=settings.REDIS_HOST, port=settings.REDIS_PORT)
 
 def nullParam():
-    return HttpResponse(json.dumps({"success": False, 'tips': "参数不能为空"}))
+    return ''
 
 # 发布专栏
 @csrf_exempt
@@ -323,6 +323,24 @@ def add_banner(request):
         return HttpResponse(json.dumps({"success": False, "tips": str(e)}))
 
 
+# banner 修改
+@is_superuser
+def update_banner(request):
+    try:
+        id = request.POST.get('id', nullParam())
+        title = request.POST.get('title', nullParam())
+        desc = request.POST.get('desc', nullParam())
+        url = request.POST.get('url', nullParam())
+        LightBlogBanner.objects.filter(id=id).update(title=title, desc=desc, url=url)
+        isUpdateImg = request.POST.get('isUpdateImg', False)
+        if isUpdateImg == 'true':
+            image = request.FILES.get('image', nullParam())
+            banner = LightBlogBanner.objects.get(id=id)
+            banner.image.save(title+'.jpg', image)
+        return HttpResponse(json.dumps({"success": True, "tips":"ok"}))
+    except Exception as e:
+        return HttpResponse(json.dumps({"success": False, "tips": str(e)}))
+
 # 获取banner list信息
 
 @is_superuser
@@ -355,5 +373,16 @@ def banner_detail(request):
             "image": banner.image.url
         }
         return HttpResponse(json.dumps({"success": True, "data": detail}))
+    except Exception as e:
+        return HttpResponse(json.dumps({"success": False, "tips": str(e)}))
+
+
+@is_superuser
+def del_banner(request):
+    try:
+        id = request.POST.get('id', '')
+        banner = LightBlogBanner.objects.get(id=id)
+        banner.delete()
+        return HttpResponse(json.dumps({"success": True, "tips": "ok"}))
     except Exception as e:
         return HttpResponse(json.dumps({"success": False, "tips": str(e)}))

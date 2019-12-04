@@ -134,5 +134,9 @@ urlpatterns = [
     # 获取banner
     path('api/get/banner', lightblog_views.get_banner),
     # 获取banner detail
-    path('api/detail/banner', lightblog_views.banner_detail)
+    path('api/detail/banner', lightblog_views.banner_detail),
+    # 更新banner
+    path('api/update/banner', lightblog_views.update_banner),
+    # 删除 banner
+    path('api/del/banner', lightblog_views.del_banner),
 ]
