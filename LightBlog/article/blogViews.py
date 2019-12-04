@@ -97,7 +97,17 @@ def blog_detail(request):
                     "status": blog.article_status,
                  "wordCount": blog.article_wordCount,
                 "body": blog.article_body,}
-        return HttpResponse(json.dumps({"success": True, "data":data, "tips": 'ok'}))
+        blog_author = blog.author
+        token = request.META.get('HTTP_AUTHORIZATION')
+        dict = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
+        username = dict.get('data').get('username')
+        current_user = User.objects.get(username=username)
+        followed_users = current_user.userinfo.user_follow.all()
+        is_follow = False
+        for item in followed_users:
+            if item == blog_author:
+                is_follow = True
+        return HttpResponse(json.dumps({"success": True, "data":data, "tips": 'ok', "is_follow": is_follow}))
     except Exception as e:
         return HttpResponse(json.dumps({"success": False, 'tips': str(e)}))
 

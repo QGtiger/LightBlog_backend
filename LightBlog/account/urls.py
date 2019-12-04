@@ -40,5 +40,10 @@ urlpatterns = [
     # 获取用户详细信息
     path(r'api/detail/author', lightblog_views.detail_author),
     # 获取用户文章，推荐、发布、点赞文章
-    path(r'api/get/blogs', lightblog_views.get_author_blog)
+    path(r'api/get/blogs', lightblog_views.get_author_blog),
+
+    # 关注或者取消关注
+    path(r'api/author/follow', lightblog_views.follow_author),
+    # ta关注的人
+    path('api/list/follow', lightblog_views.follow_list),
 ]

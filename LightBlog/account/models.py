@@ -30,11 +30,13 @@ class UserInfo(models.Model):
         verbose_name='展示图片')
     user_bg = ProcessedImageField(
         upload_to=lightblog_authorbg,
-        processors=[ResizeToFill(800, 300)],
+        processors=[ResizeToFill(1000, 300)],
         format='JPEG',
         options={'quality':98},
         default='default/author-bg.jpg',
         verbose_name='展示图片')
+    user_follow = models.ManyToManyField(
+        User, related_name="user_follow", blank=True)
 
     # 注意：ImageSpecField不会生成数据库中的表
     # 处理后的图片

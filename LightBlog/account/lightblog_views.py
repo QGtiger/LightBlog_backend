@@ -149,3 +149,84 @@ def get_author_blog(request):
         return HttpResponse(json.dumps({"success": True, "blogList": blog_list, "totalpage": paginator.num_pages}))
     except Exception as e:
         return HttpResponse(json.dumps({"success": False, "tips": str(e)}))
+
+
+
+# 关注用户
+def follow_author(request):
+    try:
+        follow_username = request.POST.get('follow', '')
+        type = request.POST.get('type', '')
+        user = User.objects.get(username=follow_username)
+        token = request.META.get('HTTP_AUTHORIZATION')
+        dict = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
+        username = dict.get('data').get('username')
+        current_user = User.objects.get(username=username)
+        if type == 'follow':
+            followed_users = current_user.userinfo.user_follow.all()
+            for item in followed_users:
+                if item == user:
+                    return HttpResponse(json.dumps({"success": False, "tips": "您已关注该博主"}))
+            current_user.userinfo.user_follow.add(user)
+            num = current_user.userinfo.user_follow.count()
+            return HttpResponse(json.dumps({"success": True, "tips": "ok", "follow_count": num}))
+        else:
+            current_user.userinfo.user_follow.remove(user)
+            num = current_user.userinfo.user_follow.count()
+            return HttpResponse(json.dumps({"success": True, "tips": "ok", "follow_count": num}))
+    except Exception as e:
+        return HttpResponse(json.dumps({"success": False, "tips": str(e)}))
+
+
+# ta 关注的人
+def follow_list(request):
+    try:
+        username = request.POST.get('username', '')
+        current_user = User.objects.get(username=username)
+        type = request.POST.get('type', '')
+        page = request.POST.get('page', 1)
+        size = request.POST.get('size', 10)
+        if type == 'follow':
+            follow_author_list = current_user.userinfo.user_follow.all()
+            paginator = Paginator(follow_author_list, size)
+            try:
+                current_page = paginator.page(page)
+                list = current_page.object_list
+            except PageNotAnInteger:
+                current_page = paginator.page(1)
+                list = current_page.object_list
+            except EmptyPage:
+                current_page = paginator.page(paginator.num_pages)
+                list = current_page.object_list
+
+            user_list = []
+            for item in list:
+                user_list.append({
+                    "id": item.id,
+                    "username": item.username,
+                    "aboutme": item.userinfo.aboutme,
+                    "url": item.userinfo.photo_100x100.url
+                })
+        else:
+            follow_author_list = current_user.user_follow.all()
+            paginator = Paginator(follow_author_list, size)
+            try:
+                current_page = paginator.page(page)
+                list = current_page.object_list
+            except PageNotAnInteger:
+                current_page = paginator.page(1)
+                list = current_page.object_list
+            except EmptyPage:
+                current_page = paginator.page(paginator.num_pages)
+                list = current_page.object_list
+            user_list = []
+            for item in list:
+                user_list.append({
+                    "id": item.user.id,
+                    "username": item.user.username,
+                    "aboutme": item.aboutme,
+                    "url": item.photo_100x100.url
+                })
+        return HttpResponse(json.dumps({"success": True, "data": user_list, "total": len(follow_author_list)}))
+    except Exception as e:
+        return HttpResponse(json.dumps({"success": False, "tips": str(e)}))

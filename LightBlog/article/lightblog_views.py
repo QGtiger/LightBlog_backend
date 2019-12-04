@@ -342,8 +342,6 @@ def update_banner(request):
         return HttpResponse(json.dumps({"success": False, "tips": str(e)}))
 
 # 获取banner list信息
-
-@is_superuser
 def get_banner(request):
     try:
         banners = LightBlogBanner.objects.all()
