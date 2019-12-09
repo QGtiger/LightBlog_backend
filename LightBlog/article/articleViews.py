@@ -129,8 +129,7 @@ def get_column_theme(request):
         for i in range(len(columnList)):
             columnData.append({
                 "id": columnList[i].id,
-                "columnName": columnList[i].special_column,
-                'description': columnList[i].description
+                "columnName": columnList[i].special_column
             })
             themeList = columnList[i].lightblog_specialcolumn.all().filter(isPublish=1)
             data = []

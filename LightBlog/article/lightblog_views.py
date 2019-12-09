@@ -4,7 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.core import serializers
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
-from .models import ArticlePost, Comment,LightBlogSpecialColumn,LightBlogSpecialTheme,LightBlogBanner
+from .models import ArticlePost, Comment,LightBlogSpecialColumn,LightBlogSpecialTheme,LightBlogBanner, LightBlogArticle
 from comment.models import Comment_reply
 from django.conf import settings
 from .tasks import *
@@ -15,6 +15,7 @@ import time
 import jwt
 from django.conf import settings
 from .utils import is_superuser, log_in
+from django.core import serializers
 r = redis.Redis(host=settings.REDIS_HOST, port=settings.REDIS_PORT)
 
 def nullParam():
@@ -75,6 +76,7 @@ def special_column(request):
     try:
         columnList = LightBlogSpecialColumn.objects.all()
         status = request.POST.get('status', '')
+        is_return_img = request.POST.get('is_img', '')
         if status != '':
             columnList = columnList.filter(isPublish=status)
         special_column_list = []
@@ -84,7 +86,8 @@ def special_column(request):
                                         'created': time.mktime(columnList[i].created.timetuple()),
                                         'description': columnList[i].description,
                                         "status": columnList[i].isPublish,
-                                        "isRecommend": columnList[i].isRecommend})
+                                        "isRecommend": columnList[i].isRecommend,
+                                        "preview": columnList[i].image_preview.url if is_return_img != '' else ''})
         return HttpResponse(json.dumps({"success": True, "data": special_column_list, "total":len(columnList)}))
     except Exception as e:
         return HttpResponse(json.dumps({"success": False, "tips": str(e)}))
@@ -159,16 +162,27 @@ def update_special_column(request):
         return HttpResponse(json.dumps({"success": False, "tips": str(e)}))
 
 
+def init_data(data):
+    list = []
+    for item in data:
+        list.append({
+            "id": item.id,
+            "title": item.title
+        })
+    return list
+
 # 获取专题list
 @csrf_exempt
 def special_theme(request):
     try:
         page = request.GET.get('page')
-        size = request.GET.get('size')
+        size = request.GET.get('size',1000)
         status = request.POST.get('status', '')
         columnId = request.POST.get('columnId', '')
         content = request.POST.get('content', '')
         themeList = LightBlogSpecialTheme.objects.all()
+        is_return_img = request.POST.get('is_img', '') # 返回图片路径相当于在专题页面下
+        column = None
         if columnId != '':
             column = LightBlogSpecialColumn.objects.get(id=columnId)
             themeList = themeList.filter(special_column=column)
@@ -187,15 +201,18 @@ def special_theme(request):
             current_page = paginator.page(paginator.num_pages)
             list = current_page.object_list
         special_theme_list = []
-        for i in range(len(list)):
-            special_theme_list.append({"specialColumn": list[i].special_column.special_column,
-                                       "specialColumnId":list[i].special_column.id,
-                                       "specialThemeId": list[i].id,
-                                       "specialTheme": list[i].special_theme,
-                                       'created': time.mktime(list[i].created.timetuple()),
-                                       'description': list[i].description,
-                                       "status": list[i].isPublish})
-        return HttpResponse(json.dumps({"success": True, "data": special_theme_list, "total":len(themeList)}))
+        for item in list:
+            blogList = LightBlogArticle.objects.filter(isRecommend=True).filter(specialTheme=item)[:3]
+            special_theme_list.append({"specialColumn": item.special_column.special_column,
+                                       "specialColumnId":item.special_column.id,
+                                       "specialThemeId": item.id,
+                                       "specialTheme": item.special_theme,
+                                       'created': time.mktime(item.created.timetuple()),
+                                       'description': item.description,
+                                       "status": item.isPublish,
+                                       "preview": item.image_preview.url if is_return_img != '' else '',
+                                       "recommendBlogs": init_data(blogList) if is_return_img != '' else ''})
+        return HttpResponse(json.dumps({"success": True, "data": special_theme_list, "total":len(themeList), "columnName": column.special_column if column else '全部'}))
     except Exception as e:
         return HttpResponse(json.dumps({"success": False, "tips": str(e)}))
 

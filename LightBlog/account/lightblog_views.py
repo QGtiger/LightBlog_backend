@@ -178,6 +178,18 @@ def follow_author(request):
         return HttpResponse(json.dumps({"success": False, "tips": str(e)}))
 
 
+# 判断 user 是否在request user的关注列表里
+def is_follow(request, username2):
+    token = request.META.get('HTTP_AUTHORIZATION')
+    dict = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
+    username = dict.get('data').get('username')
+    current_user = User.objects.get(username=username)
+    for item in current_user.userinfo.user_follow.all():
+        if item.username == username2:
+            return True
+    return False
+
+
 # ta 关注的人
 def follow_list(request):
     try:
@@ -187,7 +199,7 @@ def follow_list(request):
         page = request.POST.get('page', 1)
         size = request.POST.get('size', 10)
         if type == 'follow':
-            follow_author_list = current_user.userinfo.user_follow.all()
+            follow_author_list = current_user.userinfo.user_follow.all().order_by('id')
             paginator = Paginator(follow_author_list, size)
             try:
                 current_page = paginator.page(page)
@@ -205,10 +217,11 @@ def follow_list(request):
                     "id": item.id,
                     "username": item.username,
                     "aboutme": item.userinfo.aboutme,
-                    "url": item.userinfo.photo_100x100.url
+                    "url": item.userinfo.photo_100x100.url,
+                    "is_follow": is_follow(request, item.username)
                 })
         else:
-            follow_author_list = current_user.user_follow.all()
+            follow_author_list = current_user.user_follow.all().order_by('id')
             paginator = Paginator(follow_author_list, size)
             try:
                 current_page = paginator.page(page)
@@ -225,7 +238,8 @@ def follow_list(request):
                     "id": item.user.id,
                     "username": item.user.username,
                     "aboutme": item.aboutme,
-                    "url": item.photo_100x100.url
+                    "url": item.photo_100x100.url,
+                    "is_follow": is_follow(request, item.user.username)
                 })
         return HttpResponse(json.dumps({"success": True, "data": user_list, "total": len(follow_author_list)}))
     except Exception as e:
