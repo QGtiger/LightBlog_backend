@@ -217,7 +217,6 @@ def detail_article(request):
             "themeId": article.specialTheme.id,
             "themeName": article.specialTheme.special_theme,
             "personalColumnId": article.personalColumn.id,
-            "body": article.article_body,
             "bodyHtml": article.body_html,
             "status": article.article_status,
             "created": time.mktime(article.created.timetuple()),

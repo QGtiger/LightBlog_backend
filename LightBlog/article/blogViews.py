@@ -92,11 +92,12 @@ def blog_detail(request):
                  "scanCount": view_count,
                  "author": blog.author.username,
                 "author_url": blog.author.userinfo.photo_150x150.url,
+                "author_100x100": blog.author.userinfo.photo_100x100.url,
                 "author_blogsCount": blog.author.lightblog_article.filter(isRecommend=True).count(),
                 "author_recommendBlogsList": recommendBlogsList,
                     "status": blog.article_status,
                  "wordCount": blog.article_wordCount,
-                "body": blog.article_body,}
+                "body": blog.body_html,}
         blog_author = blog.author
         token = request.META.get('HTTP_AUTHORIZATION')
         dict = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])

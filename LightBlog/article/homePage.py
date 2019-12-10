@@ -73,7 +73,7 @@ def get_articles(request):
                              "usersDisLike": list[i].users_dislike.count(),
                              "scanCount": view_count,
                              "wordCount": list[i].article_wordCount,
-                             "body": init_blog(list[i].article_body)[:200],
+                             "body": init_blog(list[i].body_html)[:200],
                              'blog_img_url': list[i].article_preview.url,
                              'author_img_url': list[i].author.userinfo.photo_150x150.url,
                              'author': list[i].author.username})
