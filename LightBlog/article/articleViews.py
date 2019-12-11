@@ -4,8 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.core import serializers
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
-from .models import ArticlePost, Comment,LightBlogSpecialColumn,LightBlogSpecialTheme,LightBlogPersonalColumn,LightBlogArticle, LightBlogArticleImage
-from comment.models import Comment_reply
+from .models import ArticlePost, LightBlogSpecialColumn,LightBlogSpecialTheme,LightBlogPersonalColumn,LightBlogArticle, LightBlogArticleImage
 from .tasks import *
 import json
 import redis

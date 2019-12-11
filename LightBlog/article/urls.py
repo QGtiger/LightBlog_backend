@@ -31,16 +31,10 @@ urlpatterns = [
     path('list_article_titles/',list_views.article_titles,name="article_titles"),
     # 博客页面
     path('article_content/<int:article_id>',list_views.article_content,name="article_content"),
-    # 博客评论的流加载
-    path('article_comment/<int:article_id>/',list_views.comment_page, name="comment_page"),
     # 博客的点赞
     path('like_article/',views.like_article,name="like_article"),
     # 博客首页的流加载
     path('article_page',list_views.article_page, name="article_page"),
-    # 评论的点赞功能
-    path('comment_like/',list_views.comment_like, name='comment_like'),
-    # 评论的删除功能
-    path('comment_delete',list_views.comment_delete, name='comment_delete'),
 
     # 获取专栏
     path('api/get/special_column', lightblog_views.special_column),

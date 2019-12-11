@@ -3,8 +3,6 @@ from django.core.paginator import Paginator,EmptyPage,PageNotAnInteger
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST,require_http_methods,require_GET
-from article.models import Comment
-from .models import Comment_reply
 import json
 import math
 import time

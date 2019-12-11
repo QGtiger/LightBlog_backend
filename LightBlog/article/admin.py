@@ -17,19 +17,6 @@ class ArticlePostAdmin(admin.ModelAdmin):
     search_fields = ('id', 'author__username', 'title', )
 
 
-@admin.register(Comment)
-class CommentAdmin(admin.ModelAdmin):
-    list_display = [
-        'id',
-        'article',
-        'commentator',
-        'body',
-        'created',
-        'is_read']
-    list_filter = ('commentator__username', 'article__title',)
-    search_fields = ['id', 'commentator__username', 'article__title']
-
-
 @admin.register(Carousel)
 class CarouselAdmin(admin.ModelAdmin):
     list_display = ['id', 'title', 'imageShow']

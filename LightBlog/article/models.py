@@ -251,31 +251,6 @@ class LightBlogBanner(models.Model):
 
 
 
-class Comment(models.Model):
-    article = models.ForeignKey(
-        ArticlePost,
-        on_delete=models.CASCADE,
-        related_name="comments")
-    commentator = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        related_name="commentator")
-    body = models.TextField()
-    created = models.DateTimeField(default=timezone.now)
-    comment_like = models.ManyToManyField(
-        User, related_name="comment_like", blank=True)
-    is_read = models.IntegerField(default=0)
-    is_deleted = models.BooleanField(default=False)
-
-    class Meta:
-        ordering = ('-created',)
-        verbose_name = ' 文章评论 '
-        verbose_name_plural = ' 文章评论 '
-
-    def __str__(self):
-        return "Comment by {} on {}".format(self.commentator, self.created)
-
-
 class Carousel(models.Model):
     title = models.CharField(
         '图片标题',

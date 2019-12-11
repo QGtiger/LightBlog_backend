@@ -2,7 +2,7 @@ from __future__ import absolute_import, unicode_literals
 from celery import shared_task
 from .forms import ArticlePostForm
 from django.contrib.auth.models import User
-from .models import ArticlePost,Comment
+from .models import ArticlePost
 
 @shared_task
 def article_post_task(title, body, column_id, username):
@@ -12,10 +12,3 @@ def article_post_task(title, body, column_id, username):
     article.save()
     return '{} 文章上传'.format(title)
 
-
-@shared_task
-def comment_delete_task(id):
-    comment = Comment.objects.get(id=id)
-    comment.is_deleted = True
-    comment.save()
-    return '评论 {} 删除'.format(id)
