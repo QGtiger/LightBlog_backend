@@ -3,9 +3,139 @@ from django.core.paginator import Paginator,EmptyPage,PageNotAnInteger
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST,require_http_methods,require_GET
+from django.contrib.auth.models import User
+from .models import LightBlogComment,LightBlogComment_reply
+from article.models import LightBlogArticle
 import json
 import math
 import time
+import jwt
+from django.conf import settings
+from article.utils import get_username
+
+
+def is_liked(user, comment):
+    return comment in user.comment_like.all()
+
+
+def is_reply_liked(user, comment):
+    return comment in user.comment_reply_like.all()
+
+
+def init_data(user, data):
+    items = data.lightblogcomment_reply.all()
+    list_data = []
+    for item in items:
+        if item.reply_type == 0:
+            list_data.append({'from': item.comment_user.username,'from_img_url':item.comment_user.userinfo.photo_150x150.url, 'to':data.commentator.username , 'id': item.id, 'comment_text': comment_text(item),
+                            'created': time.mktime(item.created.timetuple()),
+                              'comment_like': item.comment_reply_like.count(),
+                              'is_liked': is_reply_liked(user, item)
+                              })
+        else:
+            to_id = item.reply_comment
+            list_data.append(
+                {'from': item.comment_user.username,'from_img_url':item.comment_user.userinfo.photo_150x150.url, 'to': item.commented_user.username,'id': item.id, 'comment_text': comment_text(item),
+                 'created': time.mktime(item.created.timetuple()),
+                 'comment_like': item.comment_reply_like.count(),
+                 'is_liked': is_reply_liked(user, item)
+                 })
+    return list_data
+
+
+def comment_post(request):
+    try:
+        blogId = request.POST.get('blogId', '')
+        commentator_name = request.POST.get('commentatorName', '')
+        comment_text = request.POST.get('commentText', '')
+        commentator = User.objects.get(username=commentator_name)
+        article = LightBlogArticle.objects.get(id=blogId)
+        comment = LightBlogComment(article=article,commentator=commentator,comment_text=comment_text)
+        comment.save()
+        comment_info = {
+            "commentator": commentator_name,
+            "commentator_img_url": commentator.userinfo.photo_150x150.url,
+            "id": comment.id,
+            "created": time.mktime(
+                    comment.created.timetuple()),
+            "comment_like": comment.comment_like.count(),
+            "comment_text": comment_text,
+            "is_liked": False
+        }
+        return HttpResponse(json.dumps({"success": True, "tips": "OK", "data": comment_info}))
+    except Exception as e:
+        return HttpResponse(json.dumps({"success": False, "tips": str(e)}))
+
+
+def comment_text(comment):
+    if comment.deleted_by_admin:
+        return '该评论已被举报、删除'
+    elif comment.is_deleted:
+        return '该评论已被删除'
+    else:
+        return comment.comment_text
+
+
+def comments_get(request):
+    try:
+        blogId = request.POST.get('blogId', '')
+        blog = LightBlogArticle.objects.get(id=blogId)
+        comments_all = blog.lightblog_comment.all()
+        paginator = Paginator(comments_all, 6)
+        page = request.GET['page']
+
+        token = request.META.get('HTTP_AUTHORIZATION')
+        dict = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
+        username = dict.get('data').get('username')
+        user = User.objects.get(username=username)
+        try:
+            current_page = paginator.page(page)
+            comments = current_page.object_list
+        except PageNotAnInteger:
+            current_page = paginator.page(1)
+            comments = current_page.object_list
+        except EmptyPage:
+            current_page = paginator.page(paginator.num_pages)
+            comments = current_page.object_list
+        comments_list = []
+        for item in comments:
+            comments_list.append({
+                "comment_root": {
+                    'id': item.id,
+                    'commentator': item.commentator.username,
+                    'commentator_img_url': item.commentator.userinfo.photo_150x150.url,
+                    'created': time.mktime(item.created.timetuple()),
+                    'comment_like': item.comment_like.count(),
+                    'comment_text': comment_text(item),
+                    'is_liked': is_liked(user, item)
+                },
+                'comment_reply': init_data(user,item),
+            })
+        return HttpResponse(json.dumps(
+            {'success': True, 'data': comments_list, 'page_num': paginator.num_pages}))
+    except Exception as e:
+        return HttpResponse(json.dumps({"success": False, "tips": str(e)}))
+
+
+def comment_del(request):
+    try:
+        commentId = request.POST.get('commentId', '')
+        commentType = request.POST.get('commentType', '') # 1为主评论， 2为子评论
+        requestUser = get_username(request)
+        if commentType == '1':
+            comment = LightBlogComment.objects.get(id=commentId)
+            if requestUser != comment.commentator and requestUser.is_superuser is False:
+                return HttpResponse(json.dumps({"success": False, "tips": "您没有权限删除"}))
+        else:
+            comment = LightBlogComment_reply.objects.get(id=commentId)
+            if requestUser != comment.comment_user and requestUser.is_superuser is False:
+                return HttpResponse(json.dumps({"success": False, "tips": "您没有权限删除"}))
+        comment.is_deleted = True
+        comment.save()
+        return HttpResponse(json.dumps({"success": True, "tips": "ok"}))
+    except Exception as e:
+        return HttpResponse(json.dumps({"success": False, "tips": str(e)}))
+
 
 
 # Create your views here.
@@ -70,19 +200,6 @@ def comment_reply_delete(request):
         return HttpResponse(json.dumps({'code':203,'tips':'Something error...'}))
 
 
-def init_data(data):
-    items = data.comment_reply.all()
-    list_data = []
-    for item in items:
-        if item.reply_type == 0:
-            list_data.append({'from': item.comment_user.username,'from_img_url':item.comment_user.userinfo.photo_150x150.url, 'to':data.commentator.username , 'id': item.id, 'body': item.body if item.is_deleted is False else '评论已删除',
-                            'created': time.mktime(item.created.timetuple())})
-        else:
-            to_id = item.reply_comment
-            list_data.append(
-                {'from': item.comment_user.username,'from_img_url':item.comment_user.userinfo.photo_150x150.url, 'to': Comment_reply.objects.get(id=to_id).comment_user.username,'id': item.id, 'body': item.body if item.is_deleted is False else '评论已删除',
-                 'created': time.mktime(item.created.timetuple())})
-    return list_data
 
 
 @csrf_exempt

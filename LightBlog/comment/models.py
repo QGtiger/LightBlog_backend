@@ -26,7 +26,7 @@ class LightBlogComment(models.Model):
     is_read = models.BooleanField(default=False)
     is_deleted = models.BooleanField(default=False)
     is_reported = models.BooleanField(default=False)
-    reported_text = models.TextField()
+    reported_text = models.TextField(blank=True,null=True)
     deleted_by_admin = models.BooleanField(default=False)
 
     class Meta:
@@ -61,8 +61,11 @@ class LightBlogComment_reply(models.Model):
     is_read = models.BooleanField(default=False)
     is_deleted = models.BooleanField(default=False)
     is_reported = models.BooleanField(default=False)
-    reported_text = models.TextField()
+    reported_text = models.TextField(blank=True,null=True)
     deleted_by_admin = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ('-created',)
 
 
 

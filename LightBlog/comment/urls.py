@@ -18,4 +18,12 @@ urlpatterns = [
     path(r'is_read_comments', views.is_read_comments, name="is_read_comments"),
     # 评论的评论的消息
     path(r'notifications/comments', views.comments, name="comments"),
+
+
+    # 主评论
+    path('api/comment/post', views.comment_post),
+    # 获取 博客评论
+    path('api/comment/get', views.comments_get),
+    # 删除 评论
+    path('api/comment/del', views.comment_del)
 ]
