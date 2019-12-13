@@ -48,10 +48,13 @@ def init_blog(content):
             "'",
         '')
     # 去掉图片链接
+    content_text1 = re.sub(r'<.*?>', '', content_text1)
     content_text2 = re.sub(r'(!\[.*?\]\(.*?\))', '', content_text1)
     # 去掉markdown标签
     pattern = r'[\\\`\*\_\[\]\#\+\-\!\>]'
     content_text3 = re.sub(pattern, '', content_text2)
+    content_text3 = content_text3.replace(' ','')
+    content_text3 = content_text3.replace('\n', '')
     return content_text3
 
 # 验证修饰符
@@ -200,7 +203,6 @@ def update_article(request):
         return HttpResponse(json.dumps({"success": False, 'tips': str(e)}))
 
 
-
 # 文章编辑
 @csrf_exempt
 def detail_article(request):
@@ -223,7 +225,7 @@ def detail_article(request):
         }
         return HttpResponse(json.dumps({"success": True, "data": detailArticle, "tips": "OK"}))
     except Exception as e:
-        return  HttpResponse(json.dumps({"success": False, "tips": str(e)}))
+        return HttpResponse(json.dumps({"success": False, "tips": str(e)}))
 
 
 # 文章删除
@@ -238,8 +240,8 @@ def del_article(request):
         return HttpResponse(json.dumps({"success": False, "tips": str(e)}))
 
 
-
 from PIL import Image
+
 
 # 文章图片上传
 @csrf_exempt

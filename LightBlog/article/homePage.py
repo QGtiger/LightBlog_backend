@@ -26,11 +26,13 @@ def init_blog(content):
         '').replace(
             "'",
         '')
+    content_text1 = re.sub(r'<.*?>', '', content_text1)
     # 去掉图片链接
     content_text2 = re.sub(r'(!\[.*?\]\(.*?\))', '', content_text1)
     # 去掉markdown标签
     pattern = r'[\\\`\*\_\[\]\#\+\-\!\>]'
     content_text3 = re.sub(pattern, '', content_text2)
+    content_text3 = content_text3.replace('\n', '')
     return content_text3
 
 

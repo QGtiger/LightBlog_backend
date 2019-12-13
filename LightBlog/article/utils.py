@@ -17,7 +17,7 @@ def is_superuser(func):
     return wrapper
 
 
-def get_username(request):
+def get_user(request):
     token = request.META.get('HTTP_AUTHORIZATION')
     dict = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
     username = dict.get('data').get('username')

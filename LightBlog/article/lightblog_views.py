@@ -15,6 +15,7 @@ import jwt
 from django.conf import settings
 from .utils import is_superuser, log_in
 from django.core import serializers
+from .homePage import init_blog
 r = redis.Redis(host=settings.REDIS_HOST, port=settings.REDIS_PORT)
 
 def nullParam():
@@ -398,5 +399,53 @@ def del_banner(request):
         banner = LightBlogBanner.objects.get(id=id)
         banner.delete()
         return HttpResponse(json.dumps({"success": True, "tips": "ok"}))
+    except Exception as e:
+        return HttpResponse(json.dumps({"success": False, "tips": str(e)}))
+
+
+def theme_blog(request):
+    try:
+        themeId = request.POST.get('themeId', '')
+        theme = LightBlogSpecialTheme.objects.get(id=themeId)
+        themeBlog_all = theme.article_specialtheme.all()
+        size = request.GET.get('size',10)
+        paginator = Paginator(themeBlog_all, size)
+        page = request.GET.get('page','')
+        try:
+            current_page = paginator.page(page)
+            blogs = current_page.object_list
+        except PageNotAnInteger:
+            current_page = paginator.page(1)
+            blogs = current_page.object_list
+        except EmptyPage:
+            current_page = paginator.page(paginator.num_pages)
+            blogs = current_page.object_list
+        list_blog = []
+        for item in blogs:
+            view = r.get('lightblog:{}:views'.format(item.id))
+            if view is None:
+                view_count = 0
+            else:
+                view_count = view.decode('utf-8')
+            list_blog.append({"id": item.id,
+                             "title": item.title,
+                             "description": item.article_descripton,
+                             "specialColumn": item.specialColumn.special_column,
+                             "specialColumnId": item.specialColumn.id,
+                             "specialTheme": item.specialTheme.special_theme,
+                             "specialThemeId": item.specialTheme.id,
+                             "personalColumn": item.personalColumn.personal_column,
+                             "created": time.mktime(item.created.timetuple()),
+                             "updated": time.mktime(item.updated.timetuple()),
+                             "checked": time.mktime(item.checkTime.timetuple()) if item.checkTime else '',
+                             "usersLike": item.users_like.count(),
+                             "usersDisLike": item.users_dislike.count(),
+                             "scanCount": view_count,
+                             "wordCount": item.article_wordCount,
+                             "body": init_blog(item.body_html)[:200],
+                             'blog_img_url': item.article_preview.url,
+                             'author_img_url': item.author.userinfo.photo_150x150.url,
+                             'author': item.author.username})
+        return HttpResponse(json.dumps({"success": True, "data": list_blog, "themeName": theme.special_theme, "total": theme.article_specialtheme.count()}))
     except Exception as e:
         return HttpResponse(json.dumps({"success": False, "tips": str(e)}))

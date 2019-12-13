@@ -4,8 +4,6 @@ from . import views
 app_name = 'comment'
 
 urlpatterns = [
-    # 评论的回复
-    path(r'comment_reply', views.comment_reply, name="comment_reply"),
     # 评论的删除
     path(r'comment_reply_delete', views.comment_reply_delete, name="comment_reply_delete"),
     # 评论查看回复
@@ -25,5 +23,14 @@ urlpatterns = [
     # 获取 博客评论
     path('api/comment/get', views.comments_get),
     # 删除 评论
-    path('api/comment/del', views.comment_del)
+    path('api/comment/del', views.comment_del),
+    # 评论extra 信息
+    path('api/comment/extra', views.comment_extra),
+    # 评论点赞
+    path('api/comment/like', views.comment_like),
+
+    # 子评论
+    path('api/comment_reply/post', views.comment_reply_post),
+    # 获取更多的子评论
+    path('api/comment_reply/more', views.comment_repy_more),
 ]

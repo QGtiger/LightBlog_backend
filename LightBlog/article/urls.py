@@ -133,4 +133,7 @@ urlpatterns = [
     path('api/update/banner', lightblog_views.update_banner),
     # 删除 banner
     path('api/del/banner', lightblog_views.del_banner),
+
+    # 获取专题文章
+    path('api/theme/blog/list', lightblog_views.theme_blog)
 ]
