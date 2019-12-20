@@ -4,14 +4,14 @@ from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST,require_http_methods,require_GET
 from django.contrib.auth.models import User
-from .models import LightBlogComment,LightBlogComment_reply
+from .models import LightBlogComment,LightBlogComment_reply, LightBlog_report
 from article.models import LightBlogArticle
 import json
 import math
 import time
 import jwt
 from django.conf import settings
-from article.utils import get_user
+from article.utils import get_user, is_superuser
 
 
 def is_liked(user, comment):
@@ -67,7 +67,6 @@ def comment_post(request):
         return HttpResponse(json.dumps({"success": True, "tips": "OK", "data": comment_info}))
     except Exception as e:
         return HttpResponse(json.dumps({"success": False, "tips": str(e)}))
-
 
 
 # zi评论
@@ -201,7 +200,6 @@ def comment_repy_more(request):
         return HttpResponse(json.dumps({"success": False, "tips": str(e)}))
 
 
-
 def comment_del(request):
     try:
         commentId = request.POST.get('commentId', '')
@@ -253,18 +251,79 @@ def comment_like(request):
                 return HttpResponse(json.dumps({"success": True, "like_count": comment.comment_like.count()}))
         else:
             comment = LightBlogComment_reply.objects.get(id=commentId)
-            like_all = comment.comment_reply_like.all()
+            like_all = comment.comment_like.all()
             is_like = requestUser in like_all
             if is_like:
-                comment.comment_reply_like.remove(requestUser)
-                return HttpResponse(json.dumps({"success": True, "like_count": comment.comment_reply_like.count()}))
+                comment.comment_like.remove(requestUser)
+                return HttpResponse(json.dumps({"success": True, "like_count": comment.comment_like.count()}))
             else:
-                comment.comment_reply_like.add(requestUser)
-                return HttpResponse(json.dumps({"success": True, "like_count": comment.comment_reply_like.count()}))
+                comment.comment_like.add(requestUser)
+                return HttpResponse(json.dumps({"success": True, "like_count": comment.comment_like.count()}))
     except Exception as e:
         return HttpResponse(json.dumps({"success": False, "tips": str(e)}))
 
 
+@is_superuser
+def report_config(request):
+    try:
+        list = LightBlog_report.objects.all()
+        config_list = []
+        for item in list:
+            config_list.append({
+                'id': item.id,
+                'reportType': item.report_type,
+                'placeholder': item.placeholder
+            })
+        return HttpResponse(json.dumps({"success": True, "data": config_list}))
+    except Exception as e:
+        return HttpResponse(json.dumps({"success": False, "tips": str(e)}))
+
+
+@is_superuser
+def add_config(request):
+    try:
+        report_type = request.POST.get('reportType', '')
+        placeholder = request.POST.get('placeholder', '')
+        LightBlog_report.objects.create(report_type=report_type, placeholder=placeholder)
+        return HttpResponse(json.dumps({"success": True, "tips": "create successful"}))
+    except Exception as e:
+        return HttpResponse(json.dumps({"success": False, "tips": str(e)}))
+
+
+@is_superuser
+def edit_config(request):
+    try:
+        id = request.POST.get('id', '')
+        report_type = request.POST.get('reportType', '')
+        placeholder = request.POST.get('placeholder', '')
+        LightBlog_report.objects.filter(id=id).update(report_type=report_type, placeholder=placeholder)
+        return HttpResponse(json.dumps({"success": True, "tips": "update successful"}))
+    except Exception as e:
+        return HttpResponse(json.dumps({"success": False, "tips": str(e)}))
+
+
+@is_superuser
+def del_config(request):
+    try:
+        id = request.POST.get('id', '')
+        LightBlog_report.objects.get(id=id).delete()
+        return HttpResponse(json.dumps({"success": True, "tips": 'delete successful'}))
+    except Exception as e:
+        return HttpResponse(json.dumps({"success": False, "tips": str(e)}))
+
+
+@is_superuser
+def config_detail(request):
+    try:
+        id = request.POST.get('id', '')
+        config = LightBlog_report.objects.get(id=id)
+        return HttpResponse(json.dumps({"success": True, "data": {
+            'reportType': config.report_type,
+            'placeholder': config.placeholder,
+            'id': config.id
+        }}))
+    except Exception as e:
+        return HttpResponse(json.dumps({"success": False, "tips": str(e)}))
 
 
 ## 评论删除

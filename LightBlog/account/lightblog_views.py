@@ -19,6 +19,7 @@ import os
 import redis
 import jwt
 from django.conf import settings
+from article.utils import is_superuser, get_user
 from datetime import datetime, timedelta
 r = redis.Redis(host=settings.REDIS_HOST, port=settings.REDIS_PORT)
 
@@ -242,5 +243,47 @@ def follow_list(request):
                     "is_follow": is_follow(request, item.user.username)
                 })
         return HttpResponse(json.dumps({"success": True, "data": user_list, "total": len(follow_author_list)}))
+    except Exception as e:
+        return HttpResponse(json.dumps({"success": False, "tips": str(e)}))
+
+
+@is_superuser
+def user_list(request):
+    try:
+        status = request.POST.get('status', '')
+        username = request.POST.get('userName', '')
+        date_joined = request.POST.get('dateJoined', '')
+        userList = User.objects.all()[1:]
+        if status == '1':
+            userList = userList.filter(is_superuser=True)
+        elif status == '0':
+            userList = userList.filter(is_superuser=False)
+        if username != '':
+            userList = userList.filter(username__icontains=username)
+        if date_joined != '':
+            start = datetime.datetime.strptime(date_joined, '%Y-%m-%d %H:%M:%S')
+            userList = userList.filter(date_joined__gt=start)
+        page = request.GET.get('page', '')
+        size = request.GET.get('size', '')
+        paginator = Paginator(userList, size)
+        try:
+            current_page = paginator.page(page)
+            list = current_page.object_list
+        except PageNotAnInteger:
+            current_page = paginator.page(1)
+            list = current_page.object_list
+        except EmptyPage:
+            current_page = paginator.page(paginator.num_pages)
+            list = current_page.object_list
+        result_list = []
+        for user in list:
+            result_list.append({
+                'userName': user.username,
+                'admin': user.is_superuser,
+                'lastLogin': time.mktime(user.last_login.timetuple()),
+                'email': user.email,
+                'dateJoined': time.mktime(user.date_joined.timetuple())
+            })
+        return HttpResponse(json.dumps({"success": True, "data": result_list}))
     except Exception as e:
         return HttpResponse(json.dumps({"success": False, "tips": str(e)}))

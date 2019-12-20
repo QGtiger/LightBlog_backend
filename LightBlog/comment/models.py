@@ -5,6 +5,11 @@ from django.contrib.auth.models import User
 from article.models import ArticlePost,LightBlogArticle
 
 
+class LightBlog_report(models.Model):
+    report_type = models.CharField(' 举报类型 ', max_length=50)
+    placeholder = models.CharField(' 举报placeholder ', max_length=200)
+
+
 class LightBlogComment(models.Model):
     article = models.ForeignKey(
         LightBlogArticle,
@@ -26,6 +31,13 @@ class LightBlogComment(models.Model):
     is_read = models.BooleanField(default=False)
     is_deleted = models.BooleanField(default=False)
     is_reported = models.BooleanField(default=False)
+    report_type = models.ForeignKey(
+        LightBlog_report,
+        on_delete=models.CASCADE,
+        related_name='comment_report',
+        blank=True,
+        null=True
+    )
     reported_text = models.TextField(blank=True,null=True)
     deleted_by_admin = models.BooleanField(default=False)
 
@@ -61,6 +73,13 @@ class LightBlogComment_reply(models.Model):
     is_read = models.BooleanField(default=False)
     is_deleted = models.BooleanField(default=False)
     is_reported = models.BooleanField(default=False)
+    report_type = models.ForeignKey(
+        LightBlog_report,
+        on_delete=models.CASCADE,
+        related_name='comment_reply_report',
+        blank=True,
+        null=True
+    )
     reported_text = models.TextField(blank=True,null=True)
     deleted_by_admin = models.BooleanField(default=False)
 

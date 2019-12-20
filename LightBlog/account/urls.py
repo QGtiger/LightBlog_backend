@@ -46,4 +46,8 @@ urlpatterns = [
     path(r'api/author/follow', lightblog_views.follow_author),
     # ta关注的人
     path('api/list/follow', lightblog_views.follow_list),
+
+
+    # 用户管理
+    path('api/author/list/get', lightblog_views.user_list),
 ]

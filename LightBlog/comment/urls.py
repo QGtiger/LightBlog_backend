@@ -33,4 +33,14 @@ urlpatterns = [
     path('api/comment_reply/post', views.comment_reply_post),
     # 获取更多的子评论
     path('api/comment_reply/more', views.comment_repy_more),
+
+
+    # 获取检举类型list
+    path('api/report/config/get', views.report_config),
+    # 新增config
+    path('api/report/config/add', views.add_config),
+    # 删除
+    path('api/report/config/del', views.del_config),
+    path('api/report/config/detail', views.config_detail),
+    path('api/report/config/update', views.edit_config),
 ]
