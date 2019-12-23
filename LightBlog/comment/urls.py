@@ -4,12 +4,6 @@ from . import views
 app_name = 'comment'
 
 urlpatterns = [
-    # 评论的删除
-    path(r'comment_reply_delete', views.comment_reply_delete, name="comment_reply_delete"),
-    # 评论查看回复
-    path(r'comment_reply/get',views.comment_reply_get, name="comment_reply_get"),
-    # 个人消息页面
-    path(r'message', views.message, name="message"),
     # 博客评论消息的流加载
     path(r'notifications', views.notifications, name="notifications"),
     # 个人消息是否查看的API
@@ -43,4 +37,9 @@ urlpatterns = [
     path('api/report/config/del', views.del_config),
     path('api/report/config/detail', views.config_detail),
     path('api/report/config/update', views.edit_config),
+
+    # 举报评论
+    path('api/comment/report', views.comment_report),
+    # 评论检举 list
+    path('api/comment/report/list', views.comment_report_list)
 ]

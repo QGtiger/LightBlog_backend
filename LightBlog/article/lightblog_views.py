@@ -212,7 +212,7 @@ def special_theme(request):
                                        "status": item.isPublish,
                                        "preview": item.image_preview.url if is_return_img != '' else '',
                                        "recommendBlogs": init_data(blogList) if is_return_img != '' else ''})
-        return HttpResponse(json.dumps({"success": True, "data": special_theme_list, "total":len(themeList), "columnName": column.special_column if column else '全部'}))
+        return HttpResponse(json.dumps({"success": True, "data": special_theme_list, "total":len(themeList), "columnName": column.special_column if column else '全部', "columnDesc": column.description if column else "LightBlog's column of all."}))
     except Exception as e:
         return HttpResponse(json.dumps({"success": False, "tips": str(e)}))
 

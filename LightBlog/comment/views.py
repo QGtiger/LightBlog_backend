@@ -4,8 +4,9 @@ from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST,require_http_methods,require_GET
 from django.contrib.auth.models import User
-from .models import LightBlogComment,LightBlogComment_reply, LightBlog_report
+from .models import LightBlogComment,LightBlogComment_reply, LightBlog_report,LightBlogComment_report
 from article.models import LightBlogArticle
+from django.utils import timezone
 import json
 import math
 import time
@@ -263,7 +264,6 @@ def comment_like(request):
         return HttpResponse(json.dumps({"success": False, "tips": str(e)}))
 
 
-@is_superuser
 def report_config(request):
     try:
         list = LightBlog_report.objects.all()
@@ -326,39 +326,58 @@ def config_detail(request):
         return HttpResponse(json.dumps({"success": False, "tips": str(e)}))
 
 
-## 评论删除
-@csrf_exempt
-@require_POST
-def comment_reply_delete(request):
-    id = request.POST.get('id','')
-    comment_reply = Comment_reply.objects.get(id=id)
+# 评论举报
+def comment_report(request):
     try:
-        if request.user == comment_reply.comment_user:
-            comment_reply.is_deleted = True
-            comment_reply.save()
-            return HttpResponse(json.dumps({'code':201,'tips':'评论已删除'}))
-        else:
-            return HttpResponse(json.dumps({'code':502,'tips':'You do not have permission...'}))
-    except:
-        return HttpResponse(json.dumps({'code':203,'tips':'Something error...'}))
+        type = request.POST.get('type', '')
+        id = request.POST.get('commentId', '')
+        reportId = request.POST.get('reportId', '')
+        reportText = request.POST.get('reportText', '')
+        LightBlogComment_report.objects.create(reply_type=type,commentId=id,report_type=LightBlog_report.objects.get(id=reportId),reported_text=reportText,report_user=get_user(request))
+        return HttpResponse(json.dumps({"success": True, "tips": "OK"}))
+    except Exception as e:
+        return HttpResponse(json.dumps({"success": False, "tips": str(e)}))
 
 
+def comment_report_list(request):
+    try:
+        report_list = LightBlogComment_report.objects.all()
+        reportId = request.POST.get('reportId', '')
+        if reportId != '':
+            report_list = report_list.filter(report_type=LightBlog_report.objects.get(id=reportId))
+        size = request.GET.get('size', 6)
+        paginator = Paginator(report_list, size)
+        page = request.GET['page']
+
+        try:
+            current_page = paginator.page(page)
+            reports = current_page.object_list
+        except PageNotAnInteger:
+            current_page = paginator.page(1)
+            reports = current_page.object_list
+        except EmptyPage:
+            current_page = paginator.page(paginator.num_pages)
+            reports = current_page.object_list
+        data = []
+        for item in reports:
+            is_delted = LightBlogComment.objects.get(id=item.commentId).is_deleted if item.reply_type == 1 else LightBlogComment_reply.objects.get(id=item.commentId).comment_reply.is_deleted
+            if is_delted:
+                continue
+            blog = LightBlogComment.objects.get(id=item.commentId).article if item.reply_type == 1 else LightBlogComment_reply.objects.get(id=item.commentId).comment_reply.article
+            data.append({
+                "blog": blog.title,
+                "blogId": blog.id,
+                "reportTypeId": item.report_type.id,
+                "reportType": item.report_type.report_type,
+                "reportText": item.reported_text,
+                "reportUser": item.report_user.username,
+                "commentText": LightBlogComment.objects.get(id=item.commentId).comment_text if item.reply_type == 1 else LightBlogComment_reply.objects.get(id=item.commentId).comment_text
+            })
+        return HttpResponse(json.dumps({"success": True, "data": data, "total": len(report_list)}))
+    except Exception as e:
+        return HttpResponse(json.dumps({"success": False, "tips": str(e)}))
 
 
-@csrf_exempt
-@require_POST
-def comment_reply_get(request):
-    id = request.POST.get('id','')
-    comment = Comment.objects.get(id=id)
-    comment_root = {'id':comment.id, 'commentator': comment.commentator.username,'commentator_img_url': comment.commentator.userinfo.photo_150x150.url, 'created': time.mktime(comment.created.timetuple()), 'comment_like': comment.comment_like.count(), 'body': comment.body if comment.is_deleted is False else '评论已删除'}
-    comment_child = init_data(comment)
-    length = len(comment_child)
-    return HttpResponse(json.dumps({'code':201,'comment_root': comment_root, 'comment_child': comment_child, 'nums':length}))
-
-
-@login_required(login_url='/account/login/')
-def message(request):
-    return render(request, 'comment/notifications.html')
 
 
 @require_GET

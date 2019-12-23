@@ -38,6 +38,7 @@ class LightBlogComment(models.Model):
         blank=True,
         null=True
     )
+    report_date = models.DateTimeField(blank=True, null=True)
     reported_text = models.TextField(blank=True,null=True)
     deleted_by_admin = models.BooleanField(default=False)
 
@@ -80,6 +81,7 @@ class LightBlogComment_reply(models.Model):
         blank=True,
         null=True
     )
+    report_date = models.DateTimeField(blank=True, null=True)
     reported_text = models.TextField(blank=True,null=True)
     deleted_by_admin = models.BooleanField(default=False)
 
@@ -87,4 +89,23 @@ class LightBlogComment_reply(models.Model):
         ordering = ('-created',)
 
 
+class LightBlogComment_report(models.Model):
+    reply_type = models.IntegerField('1 为主评论， 2为子评论', default=1)
+    commentId = models.IntegerField('评论id ')
+    created = models.DateTimeField(default=timezone.now)
+    report_type = models.ForeignKey(
+        LightBlog_report,
+        on_delete=models.CASCADE,
+        related_name='comment_all_report',
+        blank=True,
+        null=True
+    )
+    reported_text = models.TextField(blank=True,null=True)
+    report_user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='comment_report'
+    )
 
+    class Meta:
+        ordering = ('-created',)

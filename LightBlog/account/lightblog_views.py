@@ -253,16 +253,16 @@ def user_list(request):
         status = request.POST.get('status', '')
         username = request.POST.get('userName', '')
         date_joined = request.POST.get('dateJoined', '')
-        userList = User.objects.all()[1:]
+        userList = User.objects.all()
         if status == '1':
-            userList = userList.filter(is_superuser=True)
+            userList = userList.filter(is_superuser=True).order_by()
         elif status == '0':
-            userList = userList.filter(is_superuser=False)
+            userList = userList.filter(is_superuser=False).order_by()
         if username != '':
-            userList = userList.filter(username__icontains=username)
+            userList = userList.filter(username__icontains=str(username)).order_by()
         if date_joined != '':
-            start = datetime.datetime.strptime(date_joined, '%Y-%m-%d %H:%M:%S')
-            userList = userList.filter(date_joined__gt=start)
+            start = datetime.strptime(date_joined, '%Y-%m-%d %H:%M:%S')
+            userList = userList.filter(date_joined__gt=start).order_by()
         page = request.GET.get('page', '')
         size = request.GET.get('size', '')
         paginator = Paginator(userList, size)
@@ -284,6 +284,6 @@ def user_list(request):
                 'email': user.email,
                 'dateJoined': time.mktime(user.date_joined.timetuple())
             })
-        return HttpResponse(json.dumps({"success": True, "data": result_list}))
+        return HttpResponse(json.dumps({"success": True, "data": result_list, "total": len(userList)}))
     except Exception as e:
         return HttpResponse(json.dumps({"success": False, "tips": str(e)}))
