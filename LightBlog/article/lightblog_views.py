@@ -44,7 +44,7 @@ def recommend_special_column(request):
         if type == "notRecommend":
             column.isRecommend = False
             column.save()
-            return HttpResponse(json.dumps({"success": True, "code": 203, "tips": "下架推荐成功"}))
+            return HttpResponse(json.dumps({"success": True, "code": 200, "tips": "下架推荐成功"}))
         if LightBlogSpecialColumn.objects.filter(isRecommend=True).count() >= 3:
             return HttpResponse(json.dumps({"success": True, "code": 201, "tips": "推荐专栏不能多余三个"}))
         if column.isPublish == 0:

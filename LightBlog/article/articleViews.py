@@ -74,12 +74,29 @@ def init_blog(content):
 
 
 # 获取用户文章
-@csrf_exempt
 def get_articles(request):
     try:
         token = request.META.get('HTTP_AUTHORIZATION')
         user = getUser(token)
         articleList = user.lightblog_article.all()
+        status = request.POST.get('status', '')
+        columnId = request.POST.get('specialColumn', '')
+        themeId = request.POST.get('specialTheme', '')
+        person_column = request.POST.get('personalColumn', '')
+        queryKey = request.POST.get('articleName', '')
+        if status != '':
+            articleList = articleList.filter(article_status=status)
+        if columnId != '':
+            specialColumn = LightBlogSpecialColumn.objects.get(id=columnId)
+            articleList = articleList.filter(specialColumn=specialColumn)
+        if themeId != '':
+            specialTheme = LightBlogSpecialTheme.objects.get(id=themeId)
+            articleList = articleList.filter(specialTheme=specialTheme)
+        if person_column != '':
+            personColumn = LightBlogPersonalColumn.objects.get(id=person_column)
+            articleList = articleList.filter(personalColumn=personColumn)
+        if queryKey != '':
+            articleList = articleList.filter(title__icontains=queryKey)
         page = request.GET.get('page', '')
         size = request.GET.get('size', '')
         paginator = Paginator(articleList, size)
