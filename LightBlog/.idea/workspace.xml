@@ -2,7 +2,6 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="ff57ea2f-3399-4dce-a157-6b99e87be08b" name="Default Changelist" comment="" />
-    <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -21,22 +20,17 @@
   </component>
   <component name="ProjectId" id="1S2ZAAQN8EpLoDFCmCPZYoUKjpo" />
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showExcludedFiles" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
   <component name="PropertiesComponent">
     <property name="DefaultHtmlFileTemplate" value="HTML File" />
+    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
-  </component>
-  <component name="RunDashboard">
-    <option name="ruleStates">
-      <list>
-        <RuleState>
-          <option name="name" value="ConfigurationTypeDashboardGroupingRule" />
-        </RuleState>
-        <RuleState>
-          <option name="name" value="StatusDashboardGroupingRule" />
-        </RuleState>
-      </list>
-    </option>
   </component>
   <component name="SvnConfiguration">
     <configuration />
@@ -48,8 +42,12 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1552887800957</updated>
+      <workItem from="1582896031603" duration="3315000" />
     </task>
     <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="1" />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
     <option name="TAB_STATES">
@@ -63,5 +61,24 @@
         </entry>
       </map>
     </option>
+  </component>
+  <component name="WindowStateProjectService">
+    <state x="184" y="77" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1582897399314">
+      <screen x="0" y="0" width="1440" height="900" />
+    </state>
+    <state x="184" y="77" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.0.1440.900@0.0.1440.900" timestamp="1582897399313" />
+    <state x="184" y="92" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.23.1440.811@0.23.1440.811" timestamp="1582896100481" />
+    <state x="507" y="213" key="FileChooserDialogImpl" timestamp="1582896253164">
+      <screen x="0" y="0" width="1440" height="900" />
+    </state>
+    <state x="507" y="213" key="FileChooserDialogImpl/0.0.1440.900@0.0.1440.900" timestamp="1582896253164" />
+    <state x="229" y="89" key="SettingsEditor" timestamp="1582896262274">
+      <screen x="0" y="0" width="1440" height="900" />
+    </state>
+    <state x="229" y="89" key="SettingsEditor/0.0.1440.900@0.0.1440.900" timestamp="1582896262274" />
+    <state x="376" y="263" key="com.intellij.ide.util.TipDialog" timestamp="1582896033509">
+      <screen x="0" y="23" width="1440" height="811" />
+    </state>
+    <state x="376" y="263" key="com.intellij.ide.util.TipDialog/0.23.1440.811@0.23.1440.811" timestamp="1582896033509" />
   </component>
 </project>

@@ -200,7 +200,7 @@ def update_article(request):
         token = request.META.get('HTTP_AUTHORIZATION')
         dict = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
         username = dict.get('data').get('username')
-        if username != article.author.username:
+        if username.lower() != article.author.username.lower():
             return HttpResponse(json.dumps({"success": False, "tips": '您并没有权限修改该文章'}))
         title = request.POST.get('title', '')
         description = request.POST.get('description', '')

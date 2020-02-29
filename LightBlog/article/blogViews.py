@@ -107,7 +107,7 @@ def blog_detail(request):
         for item in followed_users:
             if item == blog_author:
                 is_follow = True
-        return HttpResponse(json.dumps({"success": True, "data":data, "tips": 'ok', "is_follow": is_follow}))
+        return HttpResponse(json.dumps({"success": True,"is_collected": current_user in blog.collector.all() ,"data":data, "tips": 'ok', "is_follow": is_follow, "is_like": current_user in blog.users_like.all(), 'is_dislike': current_user in blog.users_dislike.all()}))
     except Exception as e:
         return HttpResponse(json.dumps({"success": False, 'tips': str(e)}))
 

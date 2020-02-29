@@ -118,6 +118,8 @@ urlpatterns = [
     path('api/get/home/articles', homePage.get_articles),
     # 获取博客detail
     path('api/detail/blog', blogViews.blog_detail),
+    # 文章点赞
+    path('api/blog/like', lightblog_views.lightblog_like),
     # 获取阅读量前五的文章
     path(r'api/get/most/views', homePage.most_views),
     # 获取首页的专栏信息
@@ -135,5 +137,10 @@ urlpatterns = [
     path('api/del/banner', lightblog_views.del_banner),
 
     # 获取专题文章
-    path('api/theme/blog/list', lightblog_views.theme_blog)
+    path('api/theme/blog/list', lightblog_views.theme_blog),
+
+    # 文章收藏
+    path('api/blog/collect', lightblog_views.lightblog_collection),
+    # 后台文章收藏夹
+    path('api/myself/collection', lightblog_views.myself_collect_blog)
 ]

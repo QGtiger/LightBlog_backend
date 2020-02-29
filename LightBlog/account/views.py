@@ -122,7 +122,7 @@ def account_islogin(request):
     username = dict.get('data').get('username')
     user = User.objects.get(username=username)
     userinfo = UserInfo.objects.get(user=user)
-    return HttpResponse(json.dumps({'success': True, 'tips': '登录用户 '+username, 'username': username,"success": True, "avator": userinfo.photo.url}))
+    return HttpResponse(json.dumps({'success': True,'isAdmin': user.is_superuser ,'tips': '登录用户 '+username, 'username': username,"success": True, "avator": userinfo.photo.url}))
 
 
 @csrf_exempt

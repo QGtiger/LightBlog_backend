@@ -12,6 +12,7 @@ import redis
 import re
 import time
 import jwt
+from .utils import get_user
 from django.conf import settings
 from .utils import is_superuser, log_in
 from django.core import serializers
@@ -449,3 +450,72 @@ def theme_blog(request):
         return HttpResponse(json.dumps({"success": True, "data": list_blog, "themeName": theme.special_theme, "total": theme.article_specialtheme.count()}))
     except Exception as e:
         return HttpResponse(json.dumps({"success": False, "tips": str(e)}))
+
+
+def lightblog_like(request):
+    user = get_user(request)
+    article_id = request.POST.get('id', '')
+    action = request.POST.get('action', '')
+    try:
+        article = LightBlogArticle.objects.get(id=article_id)
+        if action == 'like':
+            likeCount = article.users_like.all()
+            is_liked = user in likeCount
+            if is_liked:
+                article.users_like.remove(user)
+                return HttpResponse(json.dumps({"success": True, 'tips': '回收自己的点赞',"is_like": False ,'like_count': article.users_like.count()}))
+            else:
+                article.users_like.add(user)
+                return HttpResponse(json.dumps({"success": True, 'tips': '感谢你的点赞',"is_like": True ,"like_count": article.users_like.count()}))
+        else:
+            dislikeAll = article.users_dislike.all()
+            is_dislike = user in dislikeAll
+            if is_dislike:
+                article.users_dislike.remove(user)
+                return HttpResponse(json.dumps({"success": True, "tips": '回收 踩一下',"is_dislike": False, 'dislike_count': article.users_dislike.count()}))
+            else:
+                article.users_dislike.add(user)
+                return HttpResponse(json.dumps({"success": True, "tips": '踩一下',"is_dislike": True ,"dislike_count": article.users_dislike.count()}))
+    except Exception as e:
+        return HttpResponse(json.dumps({"success": False, "tips": str(e)}))
+
+
+def lightblog_collection(request):
+    user = get_user(request)
+    article_id = request.POST.get('id', '')
+    action = request.POST.get('action', '')
+    try:
+        article = LightBlogArticle.objects.get(id=article_id)
+        collectionAll = article.collector.all()
+        is_collection = user in collectionAll
+        if action == 'collect':
+            if is_collection:
+                return HttpResponse(json.dumps({"success": False, "tips":'您已经收藏了改文章'}))
+            else:
+                article.collector.add(user)
+                return HttpResponse(json.dumps({"success": True, "tips": "感谢您的收藏"}))
+        else:
+            if is_collection:
+                article.collector.remove(user)
+                return HttpResponse(json.dumps({"success": True, "tips": "已经成功 移出 您的收藏夹"}))
+            else:
+                return HttpResponse(json.dumps({"success": False, "tips": "您未收藏改文章"}))
+    except Exception as e:
+        return HttpResponse(json.dumps({"success": False, "tips": str(e)}))
+
+
+def myself_collect_blog(request):
+    try:
+        user = get_user(request)
+        article_list = user.lightblog_collector.all()
+        responseData = []
+        for item in article_list:
+            responseData.append({
+                "title": item.title,
+                "author": item.author.username,
+                "special_column": item.specialColumn.special_column,
+                "special_theme": item.specialTheme.special_theme
+            })
+        return HttpResponse(json.dumps({"success": True, "data": responseData, "tips": 'OK'}))
+    except Exception as e:
+        return  HttpResponse(json.dumps({"success": False, "tips": str(e)}))

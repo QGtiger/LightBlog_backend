@@ -216,6 +216,9 @@ class LightBlogArticle(models.Model):
         User, related_name="lightblog_users_like", blank=True)
     users_dislike = models.ManyToManyField(
         User, related_name="lightblog_users_dislike", blank=True)
+    collector = models.ManyToManyField(
+        User, related_name='lightblog_collector', blank=True
+    )
 
     class Meta:
         ordering = ("-updated",)
