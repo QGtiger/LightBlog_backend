@@ -13,7 +13,7 @@ urlpatterns = [
     # 注册
     path(r'register',views.account_register,name='account_register'),
     # 密码重置
-    path(r'setpassword/',views.account_setpassword,name='account_setpassword'),
+    path(r'setpassword',views.account_setpassword,name='account_setpassword'),
 
     # 是否登录
     path(r'islogin', views.account_islogin, name="account_islogin"),

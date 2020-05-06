@@ -510,12 +510,54 @@ def myself_collect_blog(request):
         article_list = user.lightblog_collector.all()
         responseData = []
         for item in article_list:
-            responseData.append({
-                "title": item.title,
-                "author": item.author.username,
-                "special_column": item.specialColumn.special_column,
-                "special_theme": item.specialTheme.special_theme
-            })
+            view = r.get('lightblog:{}:views'.format(item.id))
+            if view is None:
+                view_count = 0
+            else:
+                view_count = view.decode('utf-8')
+            responseData.append({"id": item.id,
+                             "title": item.title,
+                             "description": item.article_descripton,
+                             "specialColumn": item.specialColumn.special_column,
+                             "specialColumnId": item.specialColumn.id,
+                             "specialTheme": item.specialTheme.special_theme,
+                             "specialThemeId": item.specialTheme.id,
+                             "personalColumn": item.personalColumn.personal_column,
+                             "created": time.mktime(item.created.timetuple()),
+                             "updated": time.mktime(item.updated.timetuple()),
+                             "isRecommend": item.isRecommend,
+                             "usersLike": item.users_like.count(),
+                             "usersDisLike": item.users_dislike.count(),
+                             "scanCount": view_count,
+                             "author": item.author.username,
+                             "status": item.article_status,
+                             "wordCount": item.article_wordCount,
+                                "articlePreview": item.article_preview.url})
+            # responseData.append({
+            #     "title": item.title,
+            #     "id": item.id,
+            #     "author": item.author.username,
+            #     "special_column": item.specialColumn.special_column,
+            #     "special_column_id": item.specialColumn.id,
+            #     "special_theme": item.specialTheme.special_theme,
+            #     "special_theme_id": item.specialTheme.id,
+            # })
         return HttpResponse(json.dumps({"success": True, "data": responseData, "tips": 'OK'}))
     except Exception as e:
         return  HttpResponse(json.dumps({"success": False, "tips": str(e)}))
+
+
+def remove_favorites(request):
+    try:
+        user = get_user(request)
+        id = request.POST.get('id','')
+        article = LightBlogArticle.objects.get(id=id)
+        favorites_list = user.lightblog_collector.all()
+        is_collected = article in favorites_list
+        if is_collected:
+            article.collector.remove(user)
+            return HttpResponse(json.dumps({"success": True,"tips": "已成功移出您次收藏夹"}))
+        else:
+            return HttpResponse(json.dumps({"success": False,"tips": "您未收藏改文章"}))
+    except Exception as e:
+        return HttpResponse(json.dumps({"success": False, "tips": str(e)}))

@@ -20,6 +20,8 @@ import redis
 import jwt
 from django.conf import settings
 from datetime import datetime, timedelta
+from .authoritylist import adminMenu, notAdminMenu
+from article.utils import get_user
 r = redis.Redis(host=settings.REDIS_HOST, port=settings.REDIS_PORT)
 
 
@@ -115,6 +117,7 @@ def account_register(request):
     return render(request, 'account/account_login.html', locals())
 
 
+
 # 判断是否是登录用户，其实在请求拦截器就做了验证，这里就简单正确返回数据
 def account_islogin(request):
     token = request.META.get('HTTP_AUTHORIZATION')
@@ -122,58 +125,114 @@ def account_islogin(request):
     username = dict.get('data').get('username')
     user = User.objects.get(username=username)
     userinfo = UserInfo.objects.get(user=user)
-    return HttpResponse(json.dumps({'success': True,'isAdmin': user.is_superuser ,'tips': '登录用户 '+username, 'username': username,"success": True, "avator": userinfo.photo.url}))
+    menuList = []
+    if user.is_superuser:
+        menuList = adminMenu
+    else:
+        menuList = notAdminMenu
+    return HttpResponse(json.dumps({'success': True,'isAdmin': user.is_superuser ,'menu_list': menuList,'tips': '登录用户 '+username, 'username': username,"success": True, "avator": userinfo.photo.url}))
 
 
 @csrf_exempt
 def account_setpassword(request):
-    username = request.user.username
-    button = ' 获取验证码 '
-    new_password = True
-    title = 'LFBlog 修改密码'
-    unit_2 = '/account/login/'
-    unit_2_name = ' 立即登录 '
-    unit_1 = '/account/register/'
-    unit_1_name = ' 立即注册 '
+    # username = request.user.username
+    # button = ' 获取验证码 '
+    # new_password = True
+    # title = 'LFBlog 修改密码'
+    # unit_2 = '/account/login/'
+    # unit_2_name = ' 立即登录 '
+    # unit_1 = '/account/register/'
+    # unit_1_name = ' 立即注册 '
+    # # user = get_user(request)
     if request.method == 'POST':
         username = request.POST.get('username', '')
         code = request.POST.get('code', '')
         password = request.POST.get('password', '')
         re_password = request.POST.get('re_password', '')
-        user = User.objects.filter(username=username)
-        if not user:
+        if not User.objects.filter(username=username):
             #tips =' 用户 '+username+' 不存在 '
-            return HttpResponse(json.dumps(
-                {'status': 1, 'tips': ' 用户 ' + username + ' 不存在 '}))
+            return HttpResponse(json.dumps({"success": False, "tips": "用户名不存在"}))
         else:
-            if not request.session.get('code', ''):
-                button = ' 重置密码 '
-                tips = ' 验证码发送 '
-                code = str(random.randint(1000, 9999))
-                request.session['code'] = code
-                user[0].email_user(' 找回密码 ', code)
-                return HttpResponse(json.dumps(
-                    {'status': 5, 'tips': tips, 'button': button}))
-            elif code == request.session.get('code', ''):
-                if password == re_password:
-                    dj_ps = make_password(password, None, 'pbkdf2_sha256')
-                    user[0].password = dj_ps
-                    user[0].save()
-                    del request.session['code']
-                    login(request, user[0])
-                    # return redirect('/blog/')
-                    return HttpResponse(json.dumps(
-                        {'status': 2, 'tips': ' 修改成功,直接登录 '}))
-                else:
-                    #tips = '前后密码不同 '
-                    return HttpResponse(json.dumps(
-                        {'status': 3, 'tips': ' 前后密码不同 '}))
+            user = User.objects.get(username=username)
+
+            if not code:
+                print(type(user))
+                codetoken = str(random.randint(1000, 9999))
+                emailUser = User.objects.filter(username=username)
+                emailUser[0].email_user(' 找回密码 ', codetoken)
+                print(user.username)
+                token = jwt.encode({
+                    'exp': datetime.utcnow() + timedelta(minutes=settings.TOKEN_EXPIRE_TIME),
+                    'iat': datetime.utcnow(),
+                    'data': {
+                        'username': username,
+                        "code": codetoken
+                    }
+                }, settings.SECRET_KEY, algorithm='HS256').decode('utf-8')
+                UserToken.objects.update_or_create(user=user, defaults={"token": token})
+                return HttpResponse(json.dumps({"success": True, "tips": "验证码已发送"}))
             else:
-                tips = ' 验证码错误，请重新获取 '
-                del request.session['code']
-                return HttpResponse(json.dumps(
-                    {'status': 4, 'tips': ' 验证码错误，请重新获取 '}))
-    return render(request, 'account/account_setpassword.html', locals())
+                token = UserToken.objects.get(user=user).token
+                print(token)
+                try:
+                    dict = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
+                    codetoken = dict.get('data').get('code')
+                    if code == codetoken:
+                        print(password, re_password)
+                        if password == re_password:
+                            dj_ps = make_password(password, None, 'pbkdf2_sha256')
+                            user.password = dj_ps
+                            user.save()
+                            return HttpResponse(json.dumps(
+                                {'success': True, 'tips': ' 修改成功,直接登录 '}))
+                        else:
+                            return HttpResponse(json.dumps(
+                                {'success': False, 'tips': ' 前后密码不同 '}))
+                    else:
+                        return HttpResponse(json.dumps({"success": False, "tips": '验证码错误'}))
+
+                except jwt.ExpiredSignatureError:
+                    return HttpResponse(json.dumps({ "tips": "验证码已过期，请重新获取哦～～～", "success": False}))
+                except jwt.InvalidTokenError:
+                    return HttpResponse(json.dumps({ "tips": "Invalid token", "success": False}))
+                except Exception as e:
+                    return HttpResponse(json.dumps({ "tips": str(e), "success": False}))
+
+            # token = request.META.get('HTTP_AUTHORIZATION', '')
+            # if token:
+            #     dict = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
+            #     code = dict.get('data').get('code')
+            #     code = str(random.randint(1000, 9999))
+            #     user[0].email_user(' 找回密码 ', code)
+            # else:
+            #
+            # if not request.session.get('code', ''):
+            #     button = ' 重置密码 '
+            #     tips = ' 验证码发送 '
+            #     code = str(random.randint(1000, 9999))
+            #     request.session['code'] = code
+            #     user[0].email_user(' 找回密码 ', code)
+            #     return HttpResponse(json.dumps(
+            #         {'status': 5, 'tips': tips, 'button': button}))
+            # elif code == request.session.get('code', ''):
+            #     if password == re_password:
+            #         dj_ps = make_password(password, None, 'pbkdf2_sha256')
+            #         user[0].password = dj_ps
+            #         user[0].save()
+            #         del request.session['code']
+            #         login(request, user[0])
+            #         # return redirect('/blog/')
+            #         return HttpResponse(json.dumps(
+            #             {'status': 2, 'tips': ' 修改成功,直接登录 '}))
+            #     else:
+            #         #tips = '前后密码不同 '
+            #         return HttpResponse(json.dumps(
+            #             {'status': 3, 'tips': ' 前后密码不同 '}))
+            # else:
+            #     tips = ' 验证码错误，请重新获取 '
+            #     del request.session['code']
+            #     return HttpResponse(json.dumps(
+            #         {'status': 4, 'tips': ' 验证码错误，请重新获取 '}))
 
 
 @login_required(login_url='/account/login/')

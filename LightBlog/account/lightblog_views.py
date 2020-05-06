@@ -42,9 +42,12 @@ def upload_avator(request):
         dict = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
         username = dict.get('data').get('username')
         uploadImg = request.FILES.get('uploadimg', nullParam())
+
         user = User.objects.get(username=username)
         userinfo = UserInfo.objects.get(user=user)
+
         userinfo.photo.save(username + '.jpg', uploadImg)
+        print(123)
         return HttpResponse(json.dumps({"success": True, "tips": "上传成功", "avator": userinfo.photo.url}))
     except Exception as e:
         return HttpResponse(json.dumps({"success": False, "tips": str(e)}))

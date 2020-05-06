@@ -43,6 +43,12 @@
       <option name="presentableId" value="Default" />
       <updated>1552887800957</updated>
       <workItem from="1582896031603" duration="3315000" />
+      <workItem from="1582985784256" duration="412000" />
+      <workItem from="1583065651495" duration="3954000" />
+      <workItem from="1583555634087" duration="4200000" />
+      <workItem from="1583715622965" duration="637000" />
+      <workItem from="1585464871826" duration="9770000" />
+      <workItem from="1587529676709" duration="758000" />
     </task>
     <servers />
   </component>
@@ -76,9 +82,14 @@
       <screen x="0" y="0" width="1440" height="900" />
     </state>
     <state x="229" y="89" key="SettingsEditor/0.0.1440.900@0.0.1440.900" timestamp="1582896262274" />
-    <state x="376" y="263" key="com.intellij.ide.util.TipDialog" timestamp="1582896033509">
-      <screen x="0" y="23" width="1440" height="811" />
+    <state x="376" y="262" key="com.intellij.ide.util.TipDialog" timestamp="1587529675948">
+      <screen x="0" y="0" width="1440" height="900" />
     </state>
+    <state x="376" y="262" key="com.intellij.ide.util.TipDialog/0.0.1440.900@0.0.1440.900" timestamp="1587529675948" />
     <state x="376" y="263" key="com.intellij.ide.util.TipDialog/0.23.1440.811@0.23.1440.811" timestamp="1582896033509" />
+    <state x="385" y="196" width="670" height="676" key="search.everywhere.popup" timestamp="1583240080399">
+      <screen x="0" y="0" width="1440" height="900" />
+    </state>
+    <state x="385" y="196" width="670" height="676" key="search.everywhere.popup/0.0.1440.900@0.0.1440.900" timestamp="1583240080399" />
   </component>
 </project>

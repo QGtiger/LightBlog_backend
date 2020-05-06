@@ -27,6 +27,7 @@ def get_column(request):
         token = request.META.get('HTTP_AUTHORIZATION')
         dict = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
         username = dict.get('data').get('username')
+        print('get_column:'+username)
         user = User.objects.get(username=username)
         columnList = LightBlogPersonalColumn.objects.filter(create_user=user)
         if len(columnList) == 0:

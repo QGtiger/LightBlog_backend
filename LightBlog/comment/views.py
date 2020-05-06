@@ -160,7 +160,8 @@ def comments_get(request):
                     'comment_like': item.comment_like.count(),
                     'comment_text': comment_text(item),
                     'is_liked': is_liked(user, item),
-                    'is_deleted': item.is_deleted
+                    'is_deleted': item.is_deleted,
+                    'is_deleted_admin': item.deleted_by_admin
                 },
                 'comment_reply': init_data(user,item),
                 'comment_reply_more': item.lightblogcomment_reply.count() > 2,
@@ -217,6 +218,33 @@ def comment_del(request):
         comment.is_deleted = True
         comment.save()
         return HttpResponse(json.dumps({"success": True, "tips": "该评论已被删除"}))
+    except Exception as e:
+        return HttpResponse(json.dumps({"success": False, "tips": str(e)}))
+
+
+def comment_handle(request):
+    try:
+        type = request.POST.get('type', '')
+        commentId = request.POST.get('commentId', '')
+        isRoot = request.POST.get('isRoot', '')
+        commentReportID = request.POST.get('commentReportId', '')
+        print(type,commentId, isRoot, commentReportID)
+        if type == '1':
+            LightBlogComment_report.objects.get(id=commentReportID).delete()
+            return HttpResponse(json.dumps({"success": True, "tips": '已忽略'}))
+        else:
+            if isRoot == '1':
+                comment = LightBlogComment.objects.get(id=commentId)
+                comment.deleted_by_admin = True
+                comment.save()
+                LightBlogComment_report.objects.get(id=commentReportID).delete()
+                return HttpResponse(json.dumps({"success": True, "tips": '已删除'}))
+            else:
+                comment = LightBlogComment_reply.objects.get(id=commentId)
+                comment.deleted_by_admin = True
+                comment.save()
+                LightBlogComment_report.objects.get(id=commentReportID).delete()
+                return HttpResponse(json.dumps({"success": True, "tips": '已删除'}))
     except Exception as e:
         return HttpResponse(json.dumps({"success": False, "tips": str(e)}))
 
@@ -365,6 +393,9 @@ def comment_report_list(request):
                 continue
             blog = LightBlogComment.objects.get(id=item.commentId).article if item.reply_type == 1 else LightBlogComment_reply.objects.get(id=item.commentId).comment_reply.article
             data.append({
+                "isRoot": item.reply_type,
+                "commentId":item.commentId,
+                "comment_report_id": item.id,
                 "blog": blog.title,
                 "blogId": blog.id,
                 "reportTypeId": item.report_type.id,

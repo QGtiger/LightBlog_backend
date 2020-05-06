@@ -142,5 +142,7 @@ urlpatterns = [
     # 文章收藏
     path('api/blog/collect', lightblog_views.lightblog_collection),
     # 后台文章收藏夹
-    path('api/myself/collection', lightblog_views.myself_collect_blog)
+    path('api/myself/collection', lightblog_views.myself_collect_blog),
+    # 移出收藏夹
+    path('api/favorite/remove', lightblog_views.remove_favorites)
 ]

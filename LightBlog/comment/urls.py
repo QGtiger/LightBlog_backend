@@ -41,5 +41,7 @@ urlpatterns = [
     # 举报评论
     path('api/comment/report', views.comment_report),
     # 评论检举 list
-    path('api/comment/report/list', views.comment_report_list)
+    path('api/comment/report/list', views.comment_report_list),
+    # 检举评论 处理
+    path('api/comment/handle/report', views.comment_handle)
 ]

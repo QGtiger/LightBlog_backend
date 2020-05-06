@@ -13,7 +13,7 @@ except ImportError:
 # 拦截器
 class SimpleMiddleware(MiddlewareMixin):
     def process_request(self, request):
-        if request.path != '/account/login' and request.path != '/account/register' and bool(re.match('^/admin.*?', request.path)) != True and bool(re.match('^/static.*?', request.path)) != True and bool(re.match('^/media.*?', request.path)) != True:
+        if request.path != '/account/login' and request.path != '/account/register' and request.path != '/account/setpassword' and bool(re.match('^/admin.*?', request.path)) != True and bool(re.match('^/static.*?', request.path)) != True and bool(re.match('^/media.*?', request.path)) != True:
             token = request.META.get('HTTP_AUTHORIZATION')
             if token:
                 pass
